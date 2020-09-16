@@ -191,5 +191,5 @@ Apps run on the user’s device and updates require a review process that is not
 
 * Configuration values or content that are expected to change should be retrieved from a server.
 
-* Apps should offer a ‘forced upgrade’ (i.e. if a new version is available that fixes a critical bug, it should be possible to force the user to upgrade). It is recommended that this forced upgrade can distinguish between the base operation (recording encounters) and other users, so that while we wait for the user to upgrade, they can still record their exposures.
+* Apps should offer a ‘forced upgrade’ (i.e. if a new version is available that fixes a critical bug, it should be possible to force the user to upgrade). 
 
