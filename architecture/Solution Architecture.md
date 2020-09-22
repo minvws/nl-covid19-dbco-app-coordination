@@ -79,25 +79,49 @@ The following diagram shows a high level concept of the solution.
 
 ![High Level Architecture](images/HLA.png)
 
+Todo: describe 'data sluis'.
+
+Todo: describe concept of 'contact tasks' that the user gets to collect contact information.
+
 # Flows
 
-This chapter describes the core flow that we are following, which is derived from the requirements and the UX design.
+This chapter describes the core flow that we are following, which is derived from the requirement, UX research and various discussions with the health authority.
 
 ## Onboarding
 
 Todo
 
-## Case Creation
+## Data preparation
 
-Todo
+A user that installs the app before getting a positive test result can start to use the app to prepare for the BCO investigation. Because there's no specific case, this part of the flow is 'generic', in the sense that all users will get the same set of basic questions. Questions can, for example, be to list the people in your household.
+
+The following diagram depicts the steps for this flow:
+
+![Preparation](images/step1_preparation.png)
+
+It is important that in this flow there is only generic interaction with the backend: to retrieve an app configuration and the list of initial tasks. The answers to the initial tasks stay local on the device and may help speed up the BCO conversation. 
+
+## Pairing the device case with the BCO case
+
+Once there is a BCO conversation the user is asked if the app is already installed or if not, to install it. The user gets handed a code to be able to link the contents in the app to the user's BCO case. Note: for the CoronaMelder app it was chosen to have the user read a code to the operator. In this case we chose the other way round, because the user might not have the app installed just yet, and may need to write down the code and install and pair the app after the call.
+
+The following diagram depicts the pairing process:
+
+![Pairing](images/step2_pairing.png)
 
 ## Collecting data
 
-Todo
+During the BCO conversation, additional tasks will have been defined by the BCO expert. They might have talked about that goalkeeper in the football team that you accidentally hugged after a score, so they might ask you to collect the data for that goalkeeper. These tasks are created using the GGD's BCO portal and the app retrieves them during/after the call.
+
+The following diagram depicts the process of retrieving these tasks and presenting them to the user.
+
+![Data collection](images/step3_datacollection.png)
 
 ## Submitting data to the backend
 
-Todo
+When the user has completed the tasks by filling out the contact details, the user will upload them to the backend. The following diagram depicts the upload process:
+
+![Data upload](images/step4_dataupload.png)
 
 ## Making data available to GGD
 
