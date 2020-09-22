@@ -1,4 +1,4 @@
-**Tip:** use the following UI links to open the APi docs in a formatted way:
+**Tip:** use the following UI links to open the API docs in a formatted way:
 
 * Interface between app and backend: [Swagger UI](https://petstore.swagger.io/?url=https://raw.githubusercontent.com/minvws/nl-covid19-dbco-app-coordination/master/architecture/api/apispec.yaml) [ReDoc](https://redocly.github.io/redoc/?url=https://raw.githubusercontent.com/minvws/nl-covid19-dbco-app-coordination/master/architecture/api/apispec.yaml) [Swagger Editor](https://editor.swagger.io/?url=https://raw.githubusercontent.com/minvws/nl-covid19-dbco-app-coordination/master/architecture/api/apispec.yaml) 
 
