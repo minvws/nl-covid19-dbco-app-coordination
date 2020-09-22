@@ -1,0 +1,21 @@
+openapi: 3.0.1
+info:
+  title: DBCO App - GGD to backend interface
+  description: |
+    This specification describes the interface between the GGD middleware and the app backend.    
+  contact:
+    name: Ministerie van Volksgezondheid Welzijn en Sport coordination repository
+    url: https://github.com/minvws/nl-covid19-dbco-app-coordination
+  license:
+    name: European Union Public License v. 1.2
+    url: https://github.com/minvws/nl-covid19-notification-app-coordination/blob/master/LICENSE.txt
+  version: 0.1.0
+servers:
+  - url: https://tbd.example.com/v1
+tags:
+  - name: Pairing
+    description: |
+      Pairing user cases to GGD cases
+paths:
+  
+      
