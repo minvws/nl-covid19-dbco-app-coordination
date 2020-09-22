@@ -119,7 +119,7 @@ The following diagram depicts the process of retrieving these tasks and presenti
 
 ## Submitting data to the backend
 
-When the user has completed the tasks by filling out the contact details, he will upload them to the backend. The following diagram depicts the upload process:
+When the user has completed the tasks by filling out the contact details, the user will upload them to the backend. The following diagram depicts the upload process:
 
 ![Data upload](images/step4_dataupload.png)
 
