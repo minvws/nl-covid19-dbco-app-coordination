@@ -13,7 +13,7 @@ info:
 servers:
   - url: https://tbd.example.com/v1
 tags:
-  - name: Pairign
+  - name: Pairing
     description: |
       Pairing user cases to GGD cases
 paths:
