@@ -64,7 +64,7 @@ paths:
       summary: Post the contacts to the GGD backend
       description: |
         All contacts will be updated every time this method is called. The GGD should replace any contacts that have the same identifier.
-        The response will be entirely encrypted with a public key. This is not reflected in the swagger docs to keep the objects readable.      
+        The response will be entirely encrypted with a public key. This is not reflected in the swagger docs to keep the objects readable.    
       parameters:
         - name: caseId
           in: path
@@ -73,13 +73,14 @@ paths:
           schema:
             type: string
       operationId: postContacts
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+             $ref: '#/components/schemas/AnswerListRequest'
       responses:
         204:
           description: Contacts updated succesfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AnswerListRequest'
 components:
   schemas:
     Task:
@@ -92,9 +93,9 @@ components:
           example: 123e4567-e89b-12d3-a456-426614172000
         taskType:
           type: string
-          description: currently. only 'contact' tasks are supported, which instruct the user to collect one or more contacts
-          enum: [housemate, closecontact, other]
-          example: contact
+          description: currently. only three task types are supported. The taskType determines which standard list of Questions will need to be answered. In the app it can be used to categorize the tasks.
+          enum: [housemate, closecontact, othercontact]
+          example: closecontact
         name:
           type: string
           description: The (short) name of the task.
