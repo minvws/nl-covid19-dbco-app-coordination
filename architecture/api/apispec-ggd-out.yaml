@@ -133,7 +133,7 @@ components:
         value:
           type: object
           anyOf: 
-            - $ref: '#/components/schemas/SimpleAnswer'
+            - $ref: '#/components/schemas/SimpleValue'
             - $ref: '#/components/schemas/ContactDetails'
             - $ref: '#/components/schemas/ContactDetailsFull'
           description: The answer value 
@@ -168,7 +168,7 @@ components:
       required: 
         - id
         - label
-    SimpleAnswer:
+    SimpleValue:
       type: object
       properties: 
         value: 
