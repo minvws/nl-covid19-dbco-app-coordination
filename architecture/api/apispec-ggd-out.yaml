@@ -167,6 +167,7 @@ components:
           example: We use the provided details to combat the epidemic 
       required: 
         - id
+        - questioType
         - label
     SimpleValue:
       type: object
