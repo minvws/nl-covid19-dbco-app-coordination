@@ -96,9 +96,9 @@ components:
           description: currently. only three task types are supported. The taskType determines which standard list of Questions will need to be answered. In the app it can be used to categorize the tasks.
           enum: [housemate, closecontact, othercontact]
           example: closecontact
-        name:
+        label:
           type: string
-          description: The (short) name of the task.
+          description: The (short) label of the task.
           example: The goalkeeper of your football match
         description:
           type: string
@@ -110,7 +110,7 @@ components:
             $ref: '#/components/schemas/Question'
       required: 
         - taskType
-        - name
+        - label
     Answer:
       type: object
       properties:
@@ -163,17 +163,17 @@ components:
             The type of question. A contactdetails type question is a block of fields with contact details (Dutch: naw gegevens) such as firstname, lastname, phone, email. contactdeatils_full is the same but includes physical address fields.
           enum: [open,contactdetails,contactdetails_full]
           example: contactdetails
-        name:
+        label:
           type: string
           description: The short name of the question
-          example: Fax number
+          example: Please provide contact details
         description:
           type: string
           description: An optional, longer description
-          example: Please provide your fax number, if you have any
+          example: We use the provided details to combat the epidemic 
       required: 
         - id
-        - name
+        - label
     SimpleAnswer:
       type: object
       properties: 
