@@ -16,9 +16,9 @@ tags:
   - name: Tasks
     description: |
       Retrieving tasks
-  - name: Contacts
+  - name: Results
     description: |
-      Delivering contacts
+      Delivering data 
 paths:
   /tasks:
     get:
@@ -57,13 +57,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskListResponse'
-  /contacts/{caseId}:
+  /taskresults/{caseId}:
     post:
       tags:
-        - Contacts
-      summary: Post the contacts to the GGD backend
+        - Results
+      summary: Post the results of the tasks to the GGD backend
       description: |
-        All contacts will be updated every time this method is called. The GGD should replace any contacts that have the same identifier.
+        All answers will be updated every time this method is called. The GGD should replace any data that have the same identifier.
         The response will be entirely encrypted with a public key. This is not reflected in the swagger docs to keep the objects readable.    
       parameters:
         - name: caseId
@@ -72,15 +72,15 @@ paths:
           required: true
           schema:
             type: string
-      operationId: postContacts
+      operationId: postTaskResults
       requestBody:
         content:
           application/json: 
             schema: 
-             $ref: '#/components/schemas/AnswerListRequest'
+             $ref: '#/components/schemas/TaskResultsRequest'
       responses:
         204:
-          description: Contacts updated succesfully
+          description: Data updated succesfully
 components:
   schemas:
     Task:
@@ -125,12 +125,6 @@ components:
           description: | 
             The moment this contact was last modified. (Note: this is device generated so may be off due to clock skew, however future updates would have the same skew, so the date can still be used to see that an item was modified)
           example: 2017-07-21T17:32:28Z
-        taskId: 
-          type: string
-          format: uuid
-          description: | 
-            The task that lead to this entry. 
-          example: 123e4567-e89b-12d3-a456-426614172000
         questionId: 
           type: string
           format: uuid
@@ -223,8 +217,18 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/Task'
-    AnswerListRequest:
-      type: array
-      items: 
-        $ref: '#/components/schemas/Answer'
+    TaskResultsRequest:
+      type: object
+      properties:
+        taskId: 
+          type: string
+          format: uuid
+          description: | 
+            The task that lead to this entry. 
+          example: 123e4567-e89b-12d3-a456-426614172000
+        results:
+          type: array
+          items: 
+             $ref: '#/components/schemas/Answer'
+          description: The completed tasks
       
