@@ -129,7 +129,7 @@ components:
           type: string
           format: uuid
           description: | 
-            The task that lead to this entry. If the user provides contacts outside the scope of a contact request (e.g. additional contacts), the taskId will be null. TODO: if we don't have the context of a task, how would the app know which questions to ask
+            The task that lead to this entry. 
           example: 123e4567-e89b-12d3-a456-426614172000
         questionId: 
           type: string
@@ -146,6 +146,7 @@ components:
           example: John
       required: 
         - id
+        - taskId
         - questionId
         - lastModified
         - value
