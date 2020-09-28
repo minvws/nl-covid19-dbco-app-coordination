@@ -13,9 +13,64 @@ info:
 servers:
   - url: https://tbd.example.com/v1
 tags:
-  - name: Pairing
+  - name: Cases
     description: |
-      Pairing user cases to GGD cases
+      Registering cases
 paths:
-  
-      
+  /cases:
+    post:
+      summary: Register a new case
+      description: |
+        This method is called from the DBCO portal to register a new case. It only requires the case identifier
+        and will return the device pairing code. The pairing code can be used to pair the
+        patient's device to the case and will only be valid for a limited amount of time. The 
+        pairing code will be communicated out of bounds to the patient (e.g. by phone or text message).
+      tags:
+        - Case
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              $ref: '#/components/schemas/RegistrationRequest'
+        required: true
+      responses:
+        201:
+          description: Case created successfully
+          content: 
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/RegistrationResponse'  
+components:
+  schemas:
+    RegistrationRequest:
+      type: object
+      required:
+        - caseId
+        - caseExpiresAt
+      properties:
+        caseId: 
+          type: string
+          description: Case identifier from the GGD system.
+        caseExpiresAt:
+          type: string
+          format: date
+          example: "2020-11-10T00:00:00.000Z"
+          description: Expiration date/time for submitting data. After this time it is not possible anymore to submit answers for this case.          
+    RegistrationResponse:
+      type: object
+      required:
+      - caseId
+      - pairingCode
+      - pairingCodeExpiresAt
+      properties:
+        caseId: 
+          type: string
+          description: Case identifier.
+        pairingCode:
+          type: string
+          description: Random generated device pairing code that can be communicated out-of-band to the patient.
+        pairingCodeExpiresAt:
+          type: string
+          format: date
+          example: "2020-11-10T00:00:00.000Z"
+          description: Expiration date/time for the pairing code. After this time it is not possible anymore to pair the device to the case.

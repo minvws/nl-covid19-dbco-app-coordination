@@ -1,0 +1,234 @@
+openapi: 3.0.1
+info:
+  title: DBCO App - App to backend interface
+  description: |
+    This specification describes the interface between the app and the app backend.    
+  contact:
+    name: Ministerie van Volksgezondheid Welzijn en Sport coordination repository
+    url: https://github.com/minvws/nl-covid19-dbco-app-coordination
+  license:
+    name: European Union Public License v. 1.2
+    url: https://github.com/minvws/nl-covid19-notification-app-coordination/blob/master/LICENSE.txt
+  version: 0.1.0
+servers:
+  - url: https://tbd.example.com/v1
+tags:
+  - name: Configs
+    description: Retrieving app config
+  - name: Pairings
+    description: Pairing device
+  - name: Tasks
+    description: Retrieving tasks
+  - name: Results
+    description: Delivering data 
+paths:
+  /configs/{id}:
+    get:
+      summary: Get the configuration for the app
+      description: |
+        The configuration contains all configuration items relevant to the app.  
+        This resource should be fetched if the app does not have this version in its cache.
+      tags:
+        - Configs
+      parameters:
+        - name: id
+          in: path
+          description: The config (version) identifier hardcoded in the app
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Config retrieved succesfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConfigResponse'
+  /pairings:
+    post:
+      summary: Pair a patient device to a case
+      description: |
+        This method is used from a device to authorize / pair a case registered earlier by a caregiver through
+        the DBCO portal. The caregiver will communicate the pairing code out-of-band to the user, for example
+        through a phone call or text message. The user will then enter the code inside the app after which this method
+        is called. After validating and authorizing the pairing code the system will generate a 256-bit signing
+        key that the device can later use to submit data to the system. The pairing code will be invalid after this
+        request.
+      tags:
+        - Pairings
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              $ref: '#/components/schemas/PairingRequest'
+        required: true
+      responses:
+        201:
+          description: Device pairing succeeded
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/PairingResponse'
+  /tasks:
+    get:
+      tags:
+        - Tasks
+      summary: Get a generic set of tasks that is user independent.
+      description: |
+         Get the list of tasks that can be used for all users. This will not be fetched on a per-user basis but only a few times per day,
+          as it is fairly static data that doesn't change often.
+      responses:
+        200:
+          description: Tasks retrieved succesfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+  /cases/{caseId}/tasks:
+    get:
+      tags:
+        - Tasks
+      summary: Get a user specific set of tasks.
+      description: |
+         Get the list of tasks for a specicic BCO case. This will be fetched on a per-user basis.
+      parameters:
+        - name: caseId
+          in: path
+          description: Case to retrieve the tasks for
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Tasks retrieved succesfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
+  /cases/{caseId}/results:
+    put:
+      tags:
+        - Results
+      summary: Post the results of the tasks to the GGD backend
+      description: |
+        All answers will be updated every time this method is called. The GGD should replace any data that have the same identifier.
+        The response will be entirely encrypted with a public key. This is not reflected in the swagger docs to keep the objects readable.    
+      parameters:
+        - name: caseId
+          in: path
+          description: Case that these results belong to
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+             $ref: '#/components/schemas/TaskResultsRequest'
+      responses:
+        202:
+          description: Data accepted for processing           
+components:
+  schemas:
+    ConfigResponse:
+      type: object
+      properties:
+        androidMinimumVersion:
+          type: integer
+          description: |
+            The minimum supported version of the Android app. The app has a build version number that is increased by 1 on each app release. Whenever the app downloads the manifest, it must compare its own version number with that of the manifest. If the version number is less than the manifest value, the user will be asked to upgrade the app from the app store.
+          format: int64
+          example: 123
+        androidMinimumVersionMessage:
+          type: string
+          description: |
+            If set, the app should not tell the user to upgrade, but display this message to the user instead. It will help us migrate from ad hoc tests to the store version.
+          example: The test is over, please download a new version from the store.
+        iOSMinimumVersion:
+          type: string
+          description: |
+             The minimum supported version of the iOS app. The app has a build version number (major.minor.patch) that is increased on each app release. Whenever the app downloads the manifest, it must 
+             compare its own version number with that of the manifest. If the version number is less than the manifest value, the user will be asked to upgrade the app from the app store. 
+          example: 1.2.0
+        iOSMinimumVersionMessage:
+          type: string
+          description: |
+            If set, the app should not tell the user to upgrade, but display this message to the user instead. It will help us migrate from ad hoc tests to the store version.
+          example: The test is over, please download a new version from the store.
+        iOSAppStoreURL:
+          type: string
+          description: If set, the upgrade dialog can link to the app store url using this link.
+          example: "https://appsto.re/...."
+    PairingRequest:
+      type: object
+      required:
+      - pairingCode
+      properties:
+        pairingCode:
+          type: string
+          description: Device pairing code.
+    PairingResponse:
+      type: object
+      required:
+      - caseId
+      - caseExpiresAt
+      - signingKey
+      properties:
+        caseId: 
+          type: string
+          description: The case identifier associated with the pairing code.
+        caseExpiresAt:
+          type: string
+          format: date
+          example: "2020-11-10T00:00:00.000Z"
+          description: Expiration date/time for the case and signing key. After this time it is not possible anymore to submit (new) data. 
+        signingKey:
+          type: string
+          description: Random generated signing key that can be used to sign data that is submitted to the back-end.        
+    TaskListResponse:
+      type: object
+      required:
+        - tasks
+      properties:
+        tasks:
+          type: array
+          items:
+            $ref: 'apispec-ggd-out.yaml#/components/schemas/Task'
+    TaskResultList:
+      type: object
+      required:
+        - results
+      properties:
+        results:
+          type: array
+          items:
+            $ref: 'apispec-ggd-out.yaml#/components/schemas/TaskResult'
+    SecureTaskResults:        
+      type: object
+      required:
+        - key
+        - iv
+        - payload
+      properties:
+        key:
+          description: AES public symmetric key
+          type: string
+        iv:
+          description: AES initialization vector          
+          type: string
+        payload:
+          type: string
+          description: |
+            Encrypted JSON string using the GGD public key. The JSON should follow the schema of
+            '#/components/schemas/TaskResultList'.
+    TaskResultsRequest:
+      type: object
+      required:
+        - signature
+        - secureResults
+      properties:
+        signature:
+          type: string
+          description: Signature for the encrypted result data. Signed using the signing key provided earlier.          
+        secureResults:
+          $ref: '#/components/schemas/SecureTaskResults'
