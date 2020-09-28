@@ -26,6 +26,7 @@ The Dutch Ministry of Health, Welfare and Sport is developing an app to aid the 
 - [System Landscape](#system-landscape)
 - [Security & Privacy](#security--privacy)
   * [Overview](#overview)
+  * [Attack Surface Minimisation](#attack-surface-minimisation)
   * [Data cleanup](#data-cleanup)
 - [Backend Considerations](#backend-considerations)
   * [Backend overview](#backend-overview)
@@ -149,9 +150,9 @@ Each part of the diagram tries to address a number of key aspects:
 
 * Data protection: how can we ensure that only authorized people can access the data
 
-## Attack surface minimization
+## Attack Surface Minimisation
 
-We practice 'attack surfice minimization' to reduce risks. This means we pay attention to the following:
+We practice 'attack surfice minimisation' to reduce risks. This means we pay attention to the following:
 
 * No more API calls than necessary for the operation of the app (no exposure of generic REST endpoints)
 * No more fields in input/output than necessary (calls will provide specific answers instead of generic entities)
