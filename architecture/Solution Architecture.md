@@ -150,6 +150,8 @@ Each part of the diagram tries to address a number of key aspects:
 
 * Data protection: how can we ensure that only authorized people can access the data
 
+TODO: Do we want a TOR network in the mix?
+
 ## Attack Surface Minimisation
 
 We practice 'attack surface minimisation' to reduce risks. This means we pay attention to the following:
@@ -163,11 +165,11 @@ We practice 'attack surface minimisation' to reduce risks. This means we pay att
 
 We don't want to keep data around longer than necessary. Therefor we have defined a few rules we apply for data cleanup:
 
-### Backend 
+### Backend cleanup
 
 Todo
 
-### Apps
+### Apps cleanup
 
 Todo
 
