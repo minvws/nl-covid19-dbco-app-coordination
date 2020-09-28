@@ -152,7 +152,7 @@ Each part of the diagram tries to address a number of key aspects:
 
 ## Attack Surface Minimisation
 
-We practice 'attack surfice minimisation' to reduce risks. This means we pay attention to the following:
+We practice 'attack surface minimisation' to reduce risks. This means we pay attention to the following:
 
 * No more API calls than necessary for the operation of the app (no exposure of generic REST endpoints)
 * No more fields in input/output than necessary (calls will provide specific answers instead of generic entities)
