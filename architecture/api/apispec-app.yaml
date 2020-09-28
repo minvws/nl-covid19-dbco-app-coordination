@@ -33,7 +33,7 @@ paths:
       parameters:
         - name: id
           in: path
-          description: The appConfig value from the manifest
+          description: The config (version) identifier hardcoded in the app
           required: true
           schema:
             type: string
@@ -129,11 +129,6 @@ paths:
         202:
           description: Data accepted for processing           
 components:
-  securitySchemes:
-    caregiverJwtAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
   schemas:
     ConfigResponse:
       type: object
@@ -164,32 +159,6 @@ components:
           type: string
           description: If set, the upgrade dialog can link to the app store url using this link.
           example: "https://appsto.re/...."
-    RegistrationRequest:
-      type: object
-      required:
-        - caseId
-      properties:
-        caseId: 
-          type: string
-          description: Case identifier from the GGD system.
-    RegistrationResponse:
-      type: object
-      required:
-      - caseId
-      - pairingCode
-      - pairingCodeExpiresAt
-      properties:
-        caseId: 
-          type: string
-          description: Case identifier.
-        pairingCode:
-          type: string
-          description: Random generated device pairing code that can be communicated out-of-band to the patient.
-        pairingCodeExpiresAt:
-          type: string
-          format: date
-          example: "2020-11-10T00:00:00.000Z"
-          description: Expiration date/time for the pairing code. After this time it is not possible anymore to pair the device to the case.
     PairingRequest:
       type: object
       required:
@@ -202,20 +171,20 @@ components:
       type: object
       required:
       - caseId
+      - caseExpiresAt
       - signingKey
-      - signingKeyExpiresAt
       properties:
         caseId: 
           type: string
           description: The case identifier associated with the pairing code.
-        signingKey:
-          type: string
-          description: Random generated signing key that can be used to sign data that is submitted to the back-end.
-        signingKeyExpiresAt:
+        caseExpiresAt:
           type: string
           format: date
           example: "2020-11-10T00:00:00.000Z"
-          description: Expiration date/time for the signing key. After this time it is not possible anymore to submit (new) data. 
+          description: Expiration date/time for the case and signing key. After this time it is not possible anymore to submit (new) data. 
+        signingKey:
+          type: string
+          description: Random generated signing key that can be used to sign data that is submitted to the back-end.        
     TaskListResponse:
       type: object
       required:

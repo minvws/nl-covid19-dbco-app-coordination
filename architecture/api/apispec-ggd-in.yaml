@@ -46,10 +46,16 @@ components:
       type: object
       required:
         - caseId
+        - caseExpiresAt
       properties:
         caseId: 
           type: string
           description: Case identifier from the GGD system.
+        caseExpiresAt:
+          type: string
+          format: date
+          example: "2020-11-10T00:00:00.000Z"
+          description: Expiration date/time for submitting data. After this time it is not possible anymore to submit answers for this case.          
     RegistrationResponse:
       type: object
       required:
@@ -62,7 +68,7 @@ components:
           description: Case identifier.
         pairingCode:
           type: string
-          description: Random generated device pairing code that can be communicated out-of-bounds to the patient.
+          description: Random generated device pairing code that can be communicated out-of-band to the patient.
         pairingCodeExpiresAt:
           type: string
           format: date
