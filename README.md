@@ -1,4 +1,4 @@
-# COVID-19 <Project Name> - <platform>
+# COVID-19 DBCO App - Coordination and Documentation
 
 ## Introduction
 This repository contains the technical documentation of the Dutch COVID-19 DBCO app.
