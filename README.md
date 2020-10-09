@@ -1,4 +1,4 @@
-# COVID-19 <Project Name> - <platform>
+# COVID-19 <Project Name> - <platform> check
 
 ## Introduction
 This repository contains the <platform> implementation of the Dutch COVID-19 <project or app name>.
