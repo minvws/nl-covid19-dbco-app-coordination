@@ -1,11 +1,13 @@
 # COVID-19 DBCO App - Solution Architecture
 
 
-**Version:** 0.1 
+**Version:** 0.1 (Work in Progress)
 
 # Introduction
 
 The Dutch Ministry of Health, Welfare and Sport is developing an app to aid the GGD in their contact tracing (Dutch: Bron & Contact Onderzoek, BCO) efforts. The name of the app has yet to be determined, for now we use the working title 'DBCO App' (Digitale ondersteuning Bron & Contact Onderzoek App). This document describes the functional and technical architecture of the DBCO app.
+
+This document is work in progress and will be adjusted during the project.
 
 # Table of contents
 
@@ -132,11 +134,15 @@ The following diagram depicts the process of retrieving these tasks and presenti
 
 ![Data collection](images/step3_datacollection.png)
 
+During this step we ask permission to access the contact list on the device. This permission is used to suggest contacts based on the task. E.g. if the task from the BCO conersation is 'please provide contact details for John D', the contact list will suggest 'Did you mean John Doe?'. Only contacts actually selected are sent to the backend. On some platforms, if permission is not desired, we can fall back to the standard OS contact picker dialog. This will allow the user to still select a contact albeit without optimized filtering.
+
 ## Submitting data to the backend
 
 When the user has completed the tasks by filling out the contact details, the user will upload them to the backend. The following diagram depicts the upload process:
 
 ![Data upload](images/step4_dataupload.png)
+
+The user can upload multiple times during the window that the upload is open. This is useful if the user needs more time to collect additional details. Each time the data is uploaded, the previous version will be overwritten.
 
 ## Making data available to GGD
 
