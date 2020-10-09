@@ -1,14 +1,7 @@
 # COVID-19 <Project Name> - <platform>
 
 ## Introduction
-This repository contains the <platform> implementation of the Dutch COVID-19 <project or app name>.
-
-* The <platform> app is located in the repository you are currently viewing.
-* The <related> can be found here: <related repo>
-
-## Local development setup
-
-Instructions for local development
+This repository contains the technical documentatio of the Dutch COVID-19 DBCO app.
 
 ## Development & Contribution process
 
