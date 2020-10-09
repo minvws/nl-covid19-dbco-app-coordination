@@ -134,7 +134,7 @@ The following diagram depicts the process of retrieving these tasks and presenti
 
 ![Data collection](images/step3_datacollection.png)
 
-During this step we ask permission to access the contact list on the device. This permission is used to suggest contacts based on the task. E.g. if the task from the BCO conersation is 'please provide contact details for John D', the contact list will suggest 'Did you mean John Doe?'. Only contacts actually selected are sent to the backend. On some platforms, if permission is not desired, we can fall back to the standard OS contact picker dialog. This will allow the user to still select a contact albeit without optimized filtering.
+During this step we ask permission to access the contact list on the device. This permission is used to suggest contacts based on the task. E.g. if the task from the BCO conversation is 'please provide contact details for John D', the contact list will suggest 'Did you mean John Doe?'. Only contacts actually selected are sent to the backend. On some platforms, if permission is not desired, we can fall back to the standard OS contact picker dialog. This will allow the user to still select a contact albeit without optimized filtering.
 
 ## Submitting data to the backend
 
