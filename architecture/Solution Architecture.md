@@ -1,11 +1,13 @@
 # COVID-19 DBCO App - Solution Architecture
 
 
-**Version:** 0.1 
+**Version:** 0.1 (Work in Progress)
 
 # Introduction
 
 The Dutch Ministry of Health, Welfare and Sport is developing an app to aid the GGD in their contact tracing (Dutch: Bron & Contact Onderzoek, BCO) efforts. The name of the app has yet to be determined, for now we use the working title 'DBCO App' (Digitale ondersteuning Bron & Contact Onderzoek App). This document describes the functional and technical architecture of the DBCO app.
+
+This document is work in progress and will be adjusted during the project.
 
 # Table of contents
 
@@ -28,10 +30,12 @@ The Dutch Ministry of Health, Welfare and Sport is developing an app to aid the 
   * [Overview](#overview)
   * [Attack Surface Minimisation](#attack-surface-minimisation)
   * [Data cleanup](#data-cleanup)
-- [Backend Considerations](#backend-considerations)
-  * [Backend overview](#backend-overview)
-  * [Infrastructure](#infrastructure)
   * [App/Device Verification](#appdevice-verification)
+- [Backend](#backend)
+  * [Backend overview](#backend-overview)
+  * [Public API](#public-api)
+  * [Private API](#private-api)
+  * [Workers](#workers)
 - [App Considerations](#app-considerations)
   * [Native vs hybrid development](#native-vs-hybrid-development)
   * [Lifecycle Management](#lifecycle-management)
@@ -43,6 +47,7 @@ The Dutch Ministry of Health, Welfare and Sport is developing an app to aid the 
 The app is build around a set of GGD requirements. For the first ('MVP') version of the app the requirements are taken from:
 
 * Bijlage 1 - Functionaliteit MVP en Oktober MVP (PVE Oktober MVP bijlagen.docx) 
+
 
 ## General Guiding principles
 
@@ -76,13 +81,24 @@ All source code will be made available on the ministry's GitHub account.
 
 # High Level Architecture
 
+## Concept
+
+The core concept of the app is described with the following steps:
+
+1. When a user is tested positive, he is contacted by the GGD to do contact tracing (who have you met, who should we warn etc.)
+2. In the current situation, this contact information is handed over orally over the phone.
+3. The DBCO project aims to deliver an app that saves time during that phone call and increases the quality of the data.
+4. To this end, during the conversation the BCO staff will still determine which people need to be contacted, but they will leave filling in the contact details to the user.
+5. The user receives, in his app, the list of people he should supply contact info for, will fill out the details, and send back the results.
+
+## Solution
+
 The following diagram shows a high level concept of the solution.
 
 ![High Level Architecture](images/HLA.png)
 
-Todo: describe 'data sluis'.
 
-Todo: describe concept of 'contact tasks' that the user gets to collect contact information.
+The core of the solution revolves around a 'digital one way street' (data-sluis) that allows uploads of contact data, in an encrypted form, that can only be decrypted by the system that needs the data. Data can never be downloaded. Edits to the data by the user happen locally on the user's device only.
 
 # Flows
 
@@ -118,11 +134,15 @@ The following diagram depicts the process of retrieving these tasks and presenti
 
 ![Data collection](images/step3_datacollection.png)
 
+During this step we ask permission to access the contact list on the device. This permission is used to suggest contacts based on the task. E.g. if the task from the BCO conversation is 'please provide contact details for John D', the contact list will suggest 'Did you mean John Doe?'. Only contacts actually selected are sent to the backend. On some platforms, if permission is not desired, we can fall back to the standard OS contact picker dialog. This will allow the user to still select a contact albeit without optimized filtering.
+
 ## Submitting data to the backend
 
 When the user has completed the tasks by filling out the contact details, the user will upload them to the backend. The following diagram depicts the upload process:
 
 ![Data upload](images/step4_dataupload.png)
+
+The user can upload multiple times during the window that the upload is open. This is useful if the user needs more time to collect additional details. Each time the data is uploaded, the previous version will be overwritten.
 
 ## Making data available to GGD
 
@@ -173,14 +193,6 @@ Todo
 
 Todo
 
-
-
-# Backend Considerations 
-
-## Backend overview
-
-Todo
-
 ## App/Device Verification
 
 This part is taken directy from the CoronaMelder architecture, and we follow the route we have taken there:
@@ -204,6 +216,37 @@ Second, the Android Developer blog states:
 The safetynet attestation documentation further states about attestation failure: *"Most likely, the device launched with an Android version less than 7.0 and it does not support hardware attestation. In this case, Android has a software implementation of attestation which produces the same sort of attestation certificate, but signed with a key hardcoded in Android source code. Because this signing key is not a secret, the attestation could have been created by an attacker pretending to provide secure hardware"* (NOTE:  https://developer.android.com/training/articles/security-key-attestation)
 
 This leads us to believe that when applying these checks, we introduce risks and dependencies while not gaining a substantial amount of security.
+
+
+# Backend  
+
+## Backend overview
+
+The following diagram describes the overall backend architecture.
+
+![Backend overview](images/backend_overview.png)
+
+## Public API
+
+The public API is the API that is accessible via the public internet, by the DBCO apps. The following diagram describes the architecture of this public API:
+
+![Public API](images/public_api.png)
+
+The definition of the Public API can be found in the [API Swagger Files](api/)
+
+## Private API
+
+The private API is the interface between the DBCO ecosystem and other systems, via a non-public connection. 
+
+![Private API](images/private_api.png)
+
+The definition of the Private API can be found in the [API Swagger Files](api/)
+
+## Workers
+
+The workers are the processes that take care of delivering data to the GGD. They are autonomous, there are no outside API calls / connections to these workers, and they deliver the data via a private network to the destination. The following diagram describes these workers.
+
+![Workers](images/workers.png)
 
 # App Considerations
 
