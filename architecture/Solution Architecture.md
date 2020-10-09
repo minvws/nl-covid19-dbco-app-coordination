@@ -28,10 +28,12 @@ The Dutch Ministry of Health, Welfare and Sport is developing an app to aid the 
   * [Overview](#overview)
   * [Attack Surface Minimisation](#attack-surface-minimisation)
   * [Data cleanup](#data-cleanup)
-- [Backend Considerations](#backend-considerations)
-  * [Backend overview](#backend-overview)
-  * [Infrastructure](#infrastructure)
   * [App/Device Verification](#appdevice-verification)
+- [Backend](#backend)
+  * [Backend overview](#backend-overview)
+  * [Public API](#public-api)
+  * [Private API](#private-api)
+  * [Workers](#workers)
 - [App Considerations](#app-considerations)
   * [Native vs hybrid development](#native-vs-hybrid-development)
   * [Lifecycle Management](#lifecycle-management)
@@ -185,14 +187,6 @@ Todo
 
 Todo
 
-
-
-# Backend Considerations 
-
-## Backend overview
-
-Todo
-
 ## App/Device Verification
 
 This part is taken directy from the CoronaMelder architecture, and we follow the route we have taken there:
@@ -216,6 +210,37 @@ Second, the Android Developer blog states:
 The safetynet attestation documentation further states about attestation failure: *"Most likely, the device launched with an Android version less than 7.0 and it does not support hardware attestation. In this case, Android has a software implementation of attestation which produces the same sort of attestation certificate, but signed with a key hardcoded in Android source code. Because this signing key is not a secret, the attestation could have been created by an attacker pretending to provide secure hardware"* (NOTE:  https://developer.android.com/training/articles/security-key-attestation)
 
 This leads us to believe that when applying these checks, we introduce risks and dependencies while not gaining a substantial amount of security.
+
+
+# Backend  
+
+## Backend overview
+
+The following diagram describes the overall backend architecture.
+
+![Backend overview](images/backend_overview.png)
+
+## Public API
+
+The public API is the API that is accessible via the public internet, by the DBCO apps. The following diagram describes the architecture of this public API:
+
+![Public API](images/public_api.png)
+
+The definition of the Public API can be found in the [API Swagger Files](api/)
+
+## Private API
+
+The private API is the interface between the DBCO ecosystem and other systems, via a non-public connection. 
+
+![Private API](images/private_api.png)
+
+The definition of the Private API can be found in the [API Swagger Files](api/)
+
+## Workers
+
+The workers are the processes that take care of delivering data to the GGD. They are autonomous, there are no outside API calls / connections to these workers, and they deliver the data via a private network to the destination. The following diagram describes these workers.
+
+![Workers](images/workers.png)
 
 # App Considerations
 
