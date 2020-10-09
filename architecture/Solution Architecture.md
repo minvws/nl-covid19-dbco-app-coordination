@@ -44,6 +44,7 @@ The app is build around a set of GGD requirements. For the first ('MVP') version
 
 * Bijlage 1 - Functionaliteit MVP en Oktober MVP (PVE Oktober MVP bijlagen.docx) 
 
+
 ## General Guiding principles
 
 In addition to the requirements, we have defined a number of guiding principles that a solution must adhere to. This means that this project has a number of key contextual requirements that drive or otherwise define the architecture or are used as a benchmark:
@@ -76,13 +77,24 @@ All source code will be made available on the ministry's GitHub account.
 
 # High Level Architecture
 
+## Concept
+
+The core concept of the app is described with the following steps:
+
+1. When a user is tested positive, he is contacted by the GGD to do contact tracing (who have you met, who should we warn etc.)
+2. In the current situation, this contact information is handed over orally over the phone.
+3. The DBCO project aims to deliver an app that saves time during that phone call and increases the quality of the data.
+4. To this end, during the conversation the BCO staff will still determine which people need to be contacted, but they will leave filling in the contact details to the user.
+5. The user receives, in his app, the list of people he should supply contact info for, will fill out the details, and send back the results.
+
+## Solution
+
 The following diagram shows a high level concept of the solution.
 
 ![High Level Architecture](images/HLA.png)
 
-Todo: describe 'data sluis'.
 
-Todo: describe concept of 'contact tasks' that the user gets to collect contact information.
+The core of the solution revolves around a 'digital one way street' (data-sluis) that allows uploads of contact data, in an encrypted form, that can only be decrypted by the system that needs the data. Data can never be downloaded. Edits to the data by the user happen locally on the user's device only.
 
 # Flows
 
