@@ -1,7 +1,7 @@
 # COVID-19 <Project Name> - <platform>
 
 ## Introduction
-This repository contains the technical documentatio of the Dutch COVID-19 DBCO app.
+This repository contains the technical documentation of the Dutch COVID-19 DBCO app.
 
 ## Development & Contribution process
 
