@@ -196,7 +196,7 @@ components:
           type: string
           description: An optional, longer description
           example: We use the provided details to combat the epidemic 
-        relevantForcategories:
+        relevantForCategories:
           type: array
           items:
             type: string
