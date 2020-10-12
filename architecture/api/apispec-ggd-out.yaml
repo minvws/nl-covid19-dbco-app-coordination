@@ -27,6 +27,13 @@ paths:
       summary: The question lists 
       description: |
          Get the list of questions that need to be asked depending on the tasktype and category.
+      parameters: 
+      - in: header
+        name: Accept-Language
+        description: The language in which to retrieve the questionnaires
+        schema:
+          type: string
+        example: "nl-NL"
       operationId: getTaskTypes
       responses:
         200:
@@ -35,7 +42,6 @@ paths:
              application/json:
                schema:
                  $ref: '#/components/schemas/QuestionnaireListResponse'
-           
   /tasks:
     get:
       tags:
