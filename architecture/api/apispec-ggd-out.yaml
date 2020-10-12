@@ -37,7 +37,7 @@ paths:
         schema:
           type: string
         example: "nl-NL"
-      operationId: getTaskTypes
+      operationId: getQuestionnairs
       responses:
         200:
            description: Task types retrieved succesfully
