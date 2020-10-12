@@ -187,6 +187,11 @@ components:
           type: string
           description: An optional, longer description
           example: We use the provided details to combat the epidemic 
+        answerOptions: 
+          type: array
+          description: If the question is multiplechoice, this provides the possible answers.
+          items: 
+            $ref: '#/components/schemas/AnswerOption'
       required: 
         - id
         - questioType
@@ -306,3 +311,17 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/TaskResult'
+    AnswerOption:
+      type: object
+      required: 
+        - label
+        - value
+      properties:
+        label: 
+          type: string
+          description: The human readable label for this option
+          example: 'Binnen de 15 meter'
+        value:
+          type: string
+          description: The value that gets sent as actual answer
+          example: '<15m'
