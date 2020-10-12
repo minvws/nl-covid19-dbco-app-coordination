@@ -219,7 +219,7 @@ components:
     ClassificationDetails:
       type: object
       properties:
-        houseRisk: 
+        livedTogetherRisk: 
           type: boolean
           description: Person in same household or longer than x hours in same house
         durationRisk:
