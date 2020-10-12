@@ -37,7 +37,7 @@ paths:
         schema:
           type: string
         example: "nl-NL"
-      operationId: getQuestionnairs
+      operationId: getQuestionnaires
       responses:
         200:
            description: Task types retrieved succesfully
@@ -82,13 +82,13 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskListResponse'
-  /cases/{caseId}/results:
     put:
       tags:
-        - Results
-      summary: Post the results of the tasks to the GGD backend
+        - Tasks
+      summary: Post the tasks (plus results) to the GGD backend
       description: |
         All answers will be updated every time this method is called. The GGD should replace any data that have the same identifier.
+        Tasks that originate in the app (source:index), should be created on the GGD side.
         The response will be entirely encrypted with a public key. This is not reflected in the swagger docs to keep the objects readable.    
       parameters:
         - name: caseId
@@ -97,12 +97,12 @@ paths:
           required: true
           schema:
             type: string
-      operationId: postQuestionnaireResults
+      operationId: putTasks
       requestBody:
         content:
           application/json: 
             schema: 
-             $ref: '#/components/schemas/QuestionnaireResultsRequest'
+             $ref: '#/components/schemas/TaskResultRequest'
       responses:
         202:
           description: Data will be processed
@@ -121,6 +121,10 @@ components:
           description: currently only one task types is supported (in the future we might have location tasks too). The taskType determines which standard list of Questions will need to be answered. In the app it can be used to categorize the tasks.
           enum: [contact]
           example: contact
+        source: 
+          type: string
+          description: Did this task originate on the ggd side (during bco conversation) or did the user create this?
+          enum: [index,portal]
         label:
           type: string
           description: The (short) label of the task.
@@ -135,7 +139,15 @@ components:
           enum: ['1', '2a', '2b', '3']
       required: 
         - taskType
+        - source
         - label
+    TaskResult:
+      type: object
+      allOf: 
+        - $ref: '#/components/schemas/Task'
+        - properties:
+            questionnaireResult:
+              $ref: '#/components/schemas/QuestionnaireResult' 
     Answer:
       type: object
       properties:
@@ -312,8 +324,14 @@ components:
     QuestionnaireResult:
       type: object
       required:
-        - answers      
+        - answers  
+        - questionnaireId
+        - taskId
       properties:
+        questionaireId:
+          type: string
+          format: uuid
+          description: The questionnaire this question is from.
         taskId: 
           type: string
           format: uuid
@@ -325,16 +343,16 @@ components:
           items: 
              $ref: '#/components/schemas/Answer'
           description: The answers
-    QuestionnaireResultsRequest:
+    TaskResultRequest:
       type: object
       required:
-        - results
+        - tasks
       properties:
-        results:
-          description: The task results
+        tasks:
+          description: The task with results
           type: array
           items:
-            $ref: '#/components/schemas/QuestionnaireResult'
+            $ref: '#/components/schemas/TaskResult'
     AnswerOption:
       type: object
       required: 
