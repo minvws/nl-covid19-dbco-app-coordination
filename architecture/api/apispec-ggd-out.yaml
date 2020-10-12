@@ -20,6 +20,22 @@ tags:
     description: |
       Delivering data 
 paths:
+  /questionnaires:
+    get:
+      tags:
+      - Tasks
+      summary: The question lists 
+      description: |
+         Get the list of questions that need to be asked depending on the tasktype and category.
+      operationId: getTaskTypes
+      responses:
+        200:
+           description: Task types retrieved succesfully
+           content: 
+             application/json:
+               schema:
+                 $ref: '#components/schemas/QuestionnaireListResponse'
+           
   /tasks:
     get:
       tags:
@@ -99,15 +115,15 @@ components:
         label:
           type: string
           description: The (short) label of the task.
-          example: The goalkeeper of your football match
-        description:
+          example: Aziz F.
+        context:
           type: string
           description: The optional (longer) explanation of the task. 
-          example: You indicated you hugged the goalkeeper after that score, please provide contact details
-        questions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Question'
+          example: The goalkeeper of your football match
+        category:
+          type: string
+          description: The BCO category for this task.
+          enum: [1, 2a, 2b, 3]
       required: 
         - taskType
         - label
@@ -224,6 +240,39 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Task'
+    QuestionnaireListResponse:
+      type: object
+      required: 
+        - questionnaires
+      properties: 
+        questionnaires: 
+          description: The questionnaires
+          type: array
+          items: 
+            $ref: '#/components/schemas/Questionnaire'
+    Questionnaire:
+      type: object
+      required:
+        - questions
+        - taskType
+      properties:
+        id:
+          type: string
+          format: uuid
+        taskType:
+          type: string
+          description: Depending on the combination taskType / category of a task, the app can determine which questionnaire to ask.
+          enum: [housemate, closecontact, othercontact]
+          example: closecontact
+        category:
+          type: string
+          description: Depending on the combination taskType / category of a task, the app can determine which questionnaire to ask.
+          enum: [1, 2a, 2b, 3] 
+          example: 2a
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question' 
     TaskResult:
       type: object
       required:
