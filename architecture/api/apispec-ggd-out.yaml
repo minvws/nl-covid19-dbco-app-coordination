@@ -178,7 +178,6 @@ components:
           example: John
       required: 
         - id
-        - taskId
         - questionId
         - lastModified
         - value
@@ -326,18 +325,11 @@ components:
       required:
         - answers  
         - questionnaireId
-        - taskId
       properties:
         questionaireId:
           type: string
           format: uuid
           description: The questionnaire this question is from.
-        taskId: 
-          type: string
-          format: uuid
-          description: |
-            The task that lead to this entry. 
-          example: 123e4567-e89b-12d3-a456-426614172000
         answers:
           type: array
           items: 
