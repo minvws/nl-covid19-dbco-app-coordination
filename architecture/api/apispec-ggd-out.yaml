@@ -97,12 +97,12 @@ paths:
           required: true
           schema:
             type: string
-      operationId: postTaskResults
+      operationId: postQuestionnaireResults
       requestBody:
         content:
           application/json: 
             schema: 
-             $ref: '#/components/schemas/TaskResultsRequest'
+             $ref: '#/components/schemas/QuestionnaireResultsRequest'
       responses:
         202:
           description: Data will be processed
@@ -309,10 +309,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Question' 
-    TaskResult:
+    QuestionnaireResult:
       type: object
       required:
-        - taskId
         - answers      
       properties:
         taskId: 
@@ -326,7 +325,7 @@ components:
           items: 
              $ref: '#/components/schemas/Answer'
           description: The answers
-    TaskResultsRequest:
+    QuestionnaireResultsRequest:
       type: object
       required:
         - results
@@ -335,7 +334,7 @@ components:
           description: The task results
           type: array
           items:
-            $ref: '#/components/schemas/TaskResult'
+            $ref: '#/components/schemas/QuestionnaireResult'
     AnswerOption:
       type: object
       required: 
