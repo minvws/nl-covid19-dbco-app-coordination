@@ -169,7 +169,7 @@ components:
           format: date-time
           description: | 
             The moment this contact was last modified. (Note: this is device generated so may be off due to clock skew, however future updates would have the same skew, so the date can still be used to see that an item was modified)
-          example: 2017-07-21T17:32:28Z
+          example: "2017-07-21T17:32:28Z"
         questionId: 
           type: string
           format: uuid
