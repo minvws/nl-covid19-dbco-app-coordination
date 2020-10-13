@@ -88,7 +88,7 @@ paths:
       summary: Post the tasks (plus results) to the GGD backend
       description: |
         All answers will be updated every time this method is called. The GGD should replace any data that have the same identifier.
-        Tasks that originate in the app (source:index), should be created on the GGD side.
+        Tasks that originate in the app (source:app), should be created on the GGD side.
         The response will be entirely encrypted with a public key. This is not reflected in the swagger docs to keep the objects readable.    
       parameters:
         - name: caseId
@@ -118,13 +118,13 @@ components:
           example: 123e4567-e89b-12d3-a456-426614172000
         taskType:
           type: string
-          description: currently only one task types is supported (in the future we might have location tasks too). The taskType determines which standard list of Questions will need to be answered. In the app it can be used to categorize the tasks.
+          description: Currently only one task types is supported (in the future we might have location tasks too). The taskType determines which standard list of Questions will need to be answered. 
           enum: [contact]
           example: contact
         source: 
           type: string
           description: Did this task originate on the ggd side (during bco conversation) or did the user create this?
-          enum: [index,portal]
+          enum: [app,portal]
         label:
           type: string
           description: The (short) label of the task.
@@ -137,6 +137,10 @@ components:
           type: string
           description: The BCO category for this task.
           enum: ['1', '2a', '2b', '3']
+        communication:
+          type: string
+          description: identifies who will inform this contact (the user, the BCO staff, or if no communication is necessary)
+          enum: ['index', 'staff', 'none']
       required: 
         - taskType
         - source
@@ -148,6 +152,10 @@ components:
         - properties:
             questionnaireResult:
               $ref: '#/components/schemas/QuestionnaireResult' 
+            informedByIndex: 
+              type: boolean
+              description: "If the index informed the contact, this should be set to true"
+              example: true
     Answer:
       type: object
       properties:
@@ -161,7 +169,7 @@ components:
           format: date-time
           description: | 
             The moment this contact was last modified. (Note: this is device generated so may be off due to clock skew, however future updates would have the same skew, so the date can still be used to see that an item was modified)
-          example: 2017-07-21T17:32:28Z
+          example: "2017-07-21T17:32:28Z"
         questionId: 
           type: string
           format: uuid
@@ -340,6 +348,11 @@ components:
       required:
         - tasks
       properties:
+        dateOfSymptomOnset:
+          description: The date that the index started having symptoms.
+          type: string
+          format: date
+          example: "2020-09-01"
         tasks:
           description: The task with results
           type: array
@@ -359,3 +372,10 @@ components:
           type: string
           description: The value that gets sent as actual answer
           example: '<15m'
+        trigger:
+          type: string
+          description: |
+            Some answers lead to specific actions in the app. If a trigger is configured, the trigger should be executed when this answer is chosen. Currently supported: 
+              * communication_index: if this answer is chosen set the task's communication option to 'index'
+              * communication_staff: if chosen, set the tasks's communication option to 'staff'
+          enum: [communication_index,communication_staff]
