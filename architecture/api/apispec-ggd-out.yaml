@@ -372,3 +372,10 @@ components:
           type: string
           description: The value that gets sent as actual answer
           example: '<15m'
+        trigger:
+          type: string
+          description: |
+            Some answers lead to specific actions in the app. If a trigger is configured, the trigger should be executed when this answer is chosen. Currently supported: 
+              * communication_index: if this answer is chosen set the task's communication option to 'index'
+              * communication_staff: if chosen, set the tasks's communication option to 'staff'
+          enum: [communication_index,communication_staff]
