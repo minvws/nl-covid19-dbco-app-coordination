@@ -88,7 +88,7 @@ paths:
       summary: Post the tasks (plus results) to the GGD backend
       description: |
         All answers will be updated every time this method is called. The GGD should replace any data that have the same identifier.
-        Tasks that originate in the app (source:index), should be created on the GGD side.
+        Tasks that originate in the app (source:app), should be created on the GGD side.
         The response will be entirely encrypted with a public key. This is not reflected in the swagger docs to keep the objects readable.    
       parameters:
         - name: caseId
@@ -124,7 +124,7 @@ components:
         source: 
           type: string
           description: Did this task originate on the ggd side (during bco conversation) or did the user create this?
-          enum: [index,portal]
+          enum: [app,portal]
         label:
           type: string
           description: The (short) label of the task.
