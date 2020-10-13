@@ -348,6 +348,11 @@ components:
       required:
         - tasks
       properties:
+        dateOfSymptomOnset:
+          description: The date that the index started having symptoms.
+          type: string
+          format: date
+          example: "2020-09-01"
         tasks:
           description: The task with results
           type: array
