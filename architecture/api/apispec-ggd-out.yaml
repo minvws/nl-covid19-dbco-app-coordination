@@ -153,7 +153,7 @@ components:
             questionnaireResult:
               $ref: '#/components/schemas/QuestionnaireResult' 
             informedByIndex: 
-              type: "boolean"
+              type: boolean
               description: "If the index informed the contact, this should be set to true"
               example: true
     Answer:
