@@ -351,11 +351,8 @@ components:
       required:
         - tasks
       properties:
-        dateOfSymptomOnset:
-          description: The date that the index started having symptoms.
-          type: string
-          format: date
-          example: "2020-09-01"
+        infection:
+          $ref: '#/components/schemas/Infection'
         tasks:
           description: The task with results
           type: array
@@ -382,3 +379,11 @@ components:
               * communication_index: if this answer is chosen set the task's communication option to 'index'
               * communication_staff: if chosen, set the tasks's communication option to 'staff'
           enum: [communication_index,communication_staff]
+    Infection:
+      type: object
+      properties:
+        dateOfSymptomOnset:
+          description: The date that the index started having symptoms.
+          type: string
+          format: date
+          example: "2020-09-01"
