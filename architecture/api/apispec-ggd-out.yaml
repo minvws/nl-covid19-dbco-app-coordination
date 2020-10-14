@@ -199,8 +199,8 @@ components:
         group:
           type: string
           description: The group determines in which of the 3 sections this question should appear.
-          enum: [context, contactdetails, other]
-          example: context
+          enum: [classification, contactdetails, other]
+          example: contactdetails
         questionType: 
           type: string
           description: |
