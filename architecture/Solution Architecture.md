@@ -42,12 +42,9 @@ This document is work in progress and will be adjusted during the project.
 
 # Requirements
 
-## GGD requirements
+## Design Input
 
-The app is build around a set of GGD requirements. For the first ('MVP') version of the app the requirements are taken from:
-
-* Bijlage 1 - Functionaliteit MVP en Oktober MVP (PVE Oktober MVP bijlagen.docx) 
-
+We are basing the requirements of the first version on a problem domain, defined in an agile process in close cooperation with the design team. The designs in the design repository (https://github.com/minvws/nl-covid19-dbco-app-design) and this solution architecture together reflect the outcome of this agile process.
 
 ## General Guiding principles
 
