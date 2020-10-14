@@ -299,7 +299,7 @@ components:
         - tasks      
       properties:
         tasks:
-          description: The completed tasks
+          description: A list of tasks
           type: array
           items:
             $ref: '#/components/schemas/Task'
