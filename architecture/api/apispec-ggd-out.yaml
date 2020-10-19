@@ -308,6 +308,7 @@ components:
       required:
         - questions
         - taskType
+        - uuid
       properties:
         uuid:
           type: string
