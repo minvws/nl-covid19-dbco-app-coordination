@@ -60,7 +60,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskList'
-  /cases/{caseId}/tasks:
+  /cases/{caseId}:
     get:
       tags:
         - Tasks
