@@ -59,7 +59,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskListBody'
+                $ref: '#/components/schemas/TaskList'
   /cases/{caseId}/tasks:
     get:
       tags:
@@ -81,7 +81,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskListBody'
+                $ref: '#/components/schemas/CaseBody'
     put:
       tags:
         - Tasks
@@ -102,7 +102,7 @@ paths:
         content:
           application/json: 
             schema: 
-             $ref: '#/components/schemas/TaskListBody'
+             $ref: '#/components/schemas/CaseBody'
       responses:
         202:
           description: Data will be processed
@@ -339,13 +339,13 @@ components:
           items: 
              $ref: '#/components/schemas/Answer'
           description: The answers
-    TaskListBody:
+    CaseBody:
       type: object
       required:
-        - infection
+        - case
       properties:
-        infection:
-          $ref: '#/components/schemas/Infection'
+        case:
+          $ref: '#/components/schemas/Case'
     AnswerOption:
       type: object
       required: 
@@ -367,7 +367,7 @@ components:
               * communication_index: if this answer is chosen set the task's communication option to 'index'
               * communication_staff: if chosen, set the tasks's communication option to 'staff'
           enum: [communication_index,communication_staff]
-    Infection:
+    Case:
       type: object
       properties:
         dateOfSymptomOnset:
@@ -376,7 +376,14 @@ components:
           format: date
           example: "2020-09-01"
         tasks:
-          description: The task with results
+          description: The tasks of this case
           type: array
           items:
+            $ref: '#/components/schemas/Task'
+    TaskList:
+      type: object
+      properties:
+        tasks: 
+          type: array
+          items: 
             $ref: '#/components/schemas/Task'
