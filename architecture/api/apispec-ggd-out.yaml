@@ -13,6 +13,9 @@ info:
 servers:
   - url: https://tbd.example.com/v1
 tags:
+  - name: Questions
+    description: |
+       Retrieving the sets of predefined questions
   - name: Tasks
     description: |
       Retrieving tasks
@@ -20,6 +23,28 @@ tags:
     description: |
       Delivering data 
 paths:
+  /questionnaires:
+    get:
+      tags:
+      - Questions
+      summary: The question lists 
+      description: |
+         Get the list of questions that need to be asked depending on the tasktype and category.
+      parameters: 
+      - in: header
+        name: Accept-Language
+        description: The language in which to retrieve the questionnaires
+        schema:
+          type: string
+        example: "nl-NL"
+      operationId: getQuestionnaires
+      responses:
+        200:
+           description: Task types retrieved succesfully
+           content: 
+             application/json:
+               schema:
+                 $ref: '#/components/schemas/QuestionnaireListResponse'
   /tasks:
     get:
       tags:
@@ -34,14 +59,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskListResponse'
-  /cases/{caseId}/tasks:
+                $ref: '#/components/schemas/TaskList'
+  /cases/{caseId}:
     get:
       tags:
         - Tasks
       summary: Get a user specific set of tasks.
       description: |
-         Get the list of tasks for a specicic BCO case. This will be fetched on a per-user basis.
+         Get the list of tasks for a specific BCO case. This will be fetched on a per-user basis.
       parameters:
         - name: caseId
           in: path
@@ -56,14 +81,14 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskListResponse'
-  /cases/{caseId}/results:
+                $ref: '#/components/schemas/CaseBody'
     put:
       tags:
-        - Results
-      summary: Post the results of the tasks to the GGD backend
+        - Tasks
+      summary: Post the tasks (plus results) to the GGD backend
       description: |
         All answers will be updated every time this method is called. The GGD should replace any data that have the same identifier.
+        Tasks that originate in the app (source:app), should be created on the GGD side.
         The response will be entirely encrypted with a public key. This is not reflected in the swagger docs to keep the objects readable.    
       parameters:
         - name: caseId
@@ -72,12 +97,12 @@ paths:
           required: true
           schema:
             type: string
-      operationId: postTaskResults
+      operationId: putTasks
       requestBody:
         content:
           application/json: 
             schema: 
-             $ref: '#/components/schemas/TaskResultsRequest'
+             $ref: '#/components/schemas/CaseBody'
       responses:
         202:
           description: Data will be processed
@@ -86,35 +111,55 @@ components:
     Task:
       type: object
       properties:
-        id:
+        uuid:
           type: string
           format: uuid
           description: A unique id for this task. Used to be able to relate contacts to a task.
           example: 123e4567-e89b-12d3-a456-426614172000
         taskType:
           type: string
-          description: currently. only three task types are supported. The taskType determines which standard list of Questions will need to be answered. In the app it can be used to categorize the tasks.
-          enum: [housemate, closecontact, othercontact]
-          example: closecontact
+          description: Currently only one task types is supported (in the future we might have location tasks too). The taskType determines which standard list of Questions will need to be answered. 
+          enum: [contact]
+          example: contact
+        source: 
+          type: string
+          description: Did this task originate on the ggd side (during bco conversation) or did the user create this?
+          enum: [app,portal]
         label:
           type: string
           description: The (short) label of the task.
-          example: The goalkeeper of your football match
-        description:
+          example: Aziz F.
+        taskContext:
           type: string
           description: The optional (longer) explanation of the task. 
-          example: You indicated you hugged the goalkeeper after that score, please provide contact details
-        questions:
-          type: array
-          items:
-            $ref: '#/components/schemas/Question'
+          example: The goalkeeper of your football match
+        category:
+          type: string
+          description: The BCO category for this task.
+          enum: ['1', '2a', '2b', '3']
+        dateOfLastExposure: 
+          type: string
+          format: date
+          example: "2020-09-02"
+        communication:
+          type: string
+          description: identifies who will inform this contact (the user, the BCO staff, or if no communication is necessary)
+          enum: ['index', 'staff', 'none']
+        questionnaireResult:
+          $ref: '#/components/schemas/QuestionnaireResult' 
+        informedByIndex: 
+          type: boolean
+          description: "If the index informed the contact, this should be set to true"
+          example: true
       required: 
+        - uuid
         - taskType
+        - source
         - label
     Answer:
       type: object
       properties:
-        id:
+        uuid:
           type: string
           format: uuid
           description: a unique id for this answer. Generated by the device. If a user updates a contact later, this id will be preserved so that the data can be updated.
@@ -124,8 +169,8 @@ components:
           format: date-time
           description: | 
             The moment this contact was last modified. (Note: this is device generated so may be off due to clock skew, however future updates would have the same skew, so the date can still be used to see that an item was modified)
-          example: 2017-07-21T17:32:28Z
-        questionId: 
+          example: "2017-07-21T17:32:28Z"
+        questionUuid: 
           type: string
           format: uuid
           description: The question that lead to this entry. 
@@ -134,28 +179,33 @@ components:
           type: object
           anyOf: 
             - $ref: '#/components/schemas/SimpleValue'
+            - $ref: '#/components/schemas/ClassificationDetails'
             - $ref: '#/components/schemas/ContactDetails'
             - $ref: '#/components/schemas/ContactDetailsFull'
           description: The answer value 
           example: John
       required: 
-        - id
-        - taskId
-        - questionId
+        - uuid
+        - questionUuid
         - lastModified
         - value
     Question:
       type: object
       properties:
-        id: 
+        uuid: 
           type: string
           format: uuid
           example: 123e4567-e89b-12d3-a456-426614176000
+        group:
+          type: string
+          description: The group determines in which of the 3 sections this question should appear.
+          enum: [classification, contactdetails, other]
+          example: contactdetails
         questionType: 
           type: string
           description: |
-            The type of question. A contactdetails type question is a block of fields with contact details (Dutch: naw gegevens) such as firstname, lastname, phone, email. contactdeatils_full is the same but includes physical address fields.
-          enum: [open,contactdetails,contactdetails_full]
+            The type of question. A contactdetails type question is a block of fields with contact details (Dutch: naw gegevens) such as firstname, lastname, phone, email. contactdetails_full is the same but includes physical address fields. A classification object has a fixed set of questions that determine the 'nature of the contact'
+          enum: [open,classificationdetails,contactdetails,contactdetails_full,multiplechoice,date,text]
           example: contactdetails
         label:
           type: string
@@ -165,15 +215,44 @@ components:
           type: string
           description: An optional, longer description
           example: We use the provided details to combat the epidemic 
+        relevantForCategories:
+          type: array
+          items:
+            type: object
+            properties:
+              category:
+                type: string 
+                enum: ['1', '2a', '2b', '3']
+          description: Depending on the category of a task (either predefined at task level, or based on classificationdetails object), the app can determine which question to ask.
+        answerOptions: 
+          type: array
+          description: If the question is multiplechoice, this provides the possible answers.
+          items: 
+            $ref: '#/components/schemas/AnswerOption'
       required: 
-        - id
-        - questioType
+        - uuid
+        - questionType
         - label
     SimpleValue:
       type: object
       properties: 
         value: 
           type: string
+    ClassificationDetails:
+      type: object
+      properties:
+        livedTogetherRisk: 
+          type: boolean
+          description: Person in same household or longer than x hours in same house
+        durationRisk:
+          type: boolean
+          description: Person was in vicinity longer than 15 minutes
+        distanceRisk:
+          type: boolean
+          description: Person was within 1.5m
+        otherRisk:
+          type: boolean
+          description: Person was at risk (kissed, etc)
     ContactDetails:
       type: object
       properties:
@@ -214,40 +293,97 @@ components:
             city: 
               type: string
               example: Ons Dorp
-    TaskListResponse:
+    QuestionnaireListResponse:
       type: object
-      required:
-        - tasks      
-      properties:
-        tasks:
-          description: The completed tasks
+      required: 
+        - questionnaires
+      properties: 
+        questionnaires: 
+          description: The questionnaires
           type: array
-          items:
-            $ref: '#/components/schemas/Task'
-    TaskResult:
+          items: 
+            $ref: '#/components/schemas/Questionnaire'
+    Questionnaire:
       type: object
       required:
-        - taskId
-        - answers      
+        - questions
+        - taskType
+        - uuid
       properties:
-        taskId: 
+        uuid:
           type: string
           format: uuid
-          description: |
-            The task that lead to this entry. 
-          example: 123e4567-e89b-12d3-a456-426614172000
+        taskType:
+          type: string
+          description: Depending on the taskType of a task, the app can determine which questionnaire to ask.
+          enum: [contact]
+          example: contact
+        questions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Question' 
+    QuestionnaireResult:
+      type: object
+      description: |
+        The answers to the questionaire. NOTE: The backend should never return the answers. QuestionnaireResult will be null when a task travels from portal to app.
+      required:
+        - answers  
+        - questionnaireUuid
+      properties:
+        questionaireUuid:
+          type: string
+          format: uuid
+          description: The questionnaire this question is from.
         answers:
           type: array
           items: 
              $ref: '#/components/schemas/Answer'
           description: The answers
-    TaskResultsRequest:
+    CaseBody:
       type: object
       required:
-        - results
+        - case
       properties:
-        results:
-          description: The task results
+        case:
+          $ref: '#/components/schemas/Case'
+    AnswerOption:
+      type: object
+      required: 
+        - label
+        - value
+      properties:
+        label: 
+          type: string
+          description: The human readable label for this option
+          example: 'Binnen de 15 meter'
+        value:
+          type: string
+          description: The value that gets sent as actual answer
+          example: '<15m'
+        trigger:
+          type: string
+          description: |
+            Some answers lead to specific actions in the app. If a trigger is configured, the trigger should be executed when this answer is chosen. Currently supported: 
+              * communication_index: if this answer is chosen set the task's communication option to 'index'
+              * communication_staff: if chosen, set the tasks's communication option to 'staff'
+          enum: [communication_index,communication_staff]
+    Case:
+      type: object
+      properties:
+        dateOfSymptomOnset:
+          description: The date that the index started having symptoms.
+          type: string
+          format: date
+          example: "2020-09-01"
+        tasks:
+          description: The tasks of this case
           type: array
           items:
-            $ref: '#/components/schemas/TaskResult'
+            $ref: '#/components/schemas/Task'
+    TaskList:
+      type: object
+      properties:
+        tasks: 
+          type: array
+          items: 
+            $ref: '#/components/schemas/Task'
