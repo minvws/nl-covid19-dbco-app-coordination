@@ -59,8 +59,8 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskListResponse'
-  /cases/{caseId}/tasks:
+                $ref: '#/components/schemas/TaskList'
+  /cases/{caseId}:
     get:
       tags:
         - Tasks
@@ -81,7 +81,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TaskListResponse'
+                $ref: '#/components/schemas/CaseBody'
     put:
       tags:
         - Tasks
@@ -102,7 +102,7 @@ paths:
         content:
           application/json: 
             schema: 
-             $ref: '#/components/schemas/TaskResultRequest'
+             $ref: '#/components/schemas/CaseBody'
       responses:
         202:
           description: Data will be processed
@@ -137,25 +137,25 @@ components:
           type: string
           description: The BCO category for this task.
           enum: ['1', '2a', '2b', '3']
+        dateOfLastExposure: 
+          type: string
+          format: date
+          example: "2020-09-02"
         communication:
           type: string
           description: identifies who will inform this contact (the user, the BCO staff, or if no communication is necessary)
           enum: ['index', 'staff', 'none']
+        questionnaireResult:
+          $ref: '#/components/schemas/QuestionnaireResult' 
+        informedByIndex: 
+          type: boolean
+          description: "If the index informed the contact, this should be set to true"
+          example: true
       required: 
+        - uuid
         - taskType
         - source
         - label
-    TaskResult:
-      type: object
-      allOf: 
-        - $ref: '#/components/schemas/Task'
-        - properties:
-            questionnaireResult:
-              $ref: '#/components/schemas/QuestionnaireResult' 
-            informedByIndex: 
-              type: boolean
-              description: "If the index informed the contact, this should be set to true"
-              example: true
     Answer:
       type: object
       properties:
@@ -293,16 +293,6 @@ components:
             city: 
               type: string
               example: Ons Dorp
-    TaskListResponse:
-      type: object
-      required:
-        - tasks      
-      properties:
-        tasks:
-          description: A list of tasks
-          type: array
-          items:
-            $ref: '#/components/schemas/Task'
     QuestionnaireListResponse:
       type: object
       required: 
@@ -318,6 +308,7 @@ components:
       required:
         - questions
         - taskType
+        - uuid
       properties:
         uuid:
           type: string
@@ -333,6 +324,8 @@ components:
             $ref: '#/components/schemas/Question' 
     QuestionnaireResult:
       type: object
+      description: |
+        The answers to the questionaire. NOTE: The backend should never return the answers. QuestionnaireResult will be null when a task travels from portal to app.
       required:
         - answers  
         - questionnaireUuid
@@ -346,18 +339,13 @@ components:
           items: 
              $ref: '#/components/schemas/Answer'
           description: The answers
-    TaskResultRequest:
+    CaseBody:
       type: object
       required:
-        - tasks
+        - case
       properties:
-        infection:
-          $ref: '#/components/schemas/Infection'
-        tasks:
-          description: The task with results
-          type: array
-          items:
-            $ref: '#/components/schemas/TaskResult'
+        case:
+          $ref: '#/components/schemas/Case'
     AnswerOption:
       type: object
       required: 
@@ -379,7 +367,7 @@ components:
               * communication_index: if this answer is chosen set the task's communication option to 'index'
               * communication_staff: if chosen, set the tasks's communication option to 'staff'
           enum: [communication_index,communication_staff]
-    Infection:
+    Case:
       type: object
       properties:
         dateOfSymptomOnset:
@@ -387,3 +375,15 @@ components:
           type: string
           format: date
           example: "2020-09-01"
+        tasks:
+          description: The tasks of this case
+          type: array
+          items:
+            $ref: '#/components/schemas/Task'
+    TaskList:
+      type: object
+      properties:
+        tasks: 
+          type: array
+          items: 
+            $ref: '#/components/schemas/Task'
