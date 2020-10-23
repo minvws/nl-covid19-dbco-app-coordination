@@ -325,12 +325,12 @@ components:
     QuestionnaireResult:
       type: object
       description: |
-        The answers to the questionaire. NOTE: The backend should never return the answers. QuestionnaireResult will be null when a task travels from portal to app.
+        The answers to the questionnaire. NOTE: The backend should never return the answers. QuestionnaireResult will be null when a task travels from portal to app.
       required:
         - answers  
         - questionnaireUuid
       properties:
-        questionaireUuid:
+        questionnaireUuid:
           type: string
           format: uuid
           description: The questionnaire this question is from.
