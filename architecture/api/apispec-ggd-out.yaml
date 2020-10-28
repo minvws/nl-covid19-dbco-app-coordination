@@ -367,10 +367,10 @@ components:
         trigger:
           type: string
           description: |
-            Some answers lead to specific actions in the app. If a trigger is configured, the trigger should be executed when this answer is chosen. Currently supported: 
+            Some answers lead to specific actions/business rules in the app. If a trigger is configured, the trigger should be executed when this answer is chosen. Currently supported: 
               * communication_index: if this answer is chosen set the task's communication option to 'index'
               * communication_staff: if chosen, set the tasks's communication option to 'staff'
-              * priority: if chosen, the task's priority option should be set to true.
+              * priority: if this answer option is chosen, the task's priority field should be set to true.
           enum: [communication_index,communication_staff,priority]
     Case:
       type: object
