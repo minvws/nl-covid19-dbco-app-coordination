@@ -22,21 +22,15 @@ tags:
   - name: Questions
     description: Generic questionnaires
 paths:
-  /configs/{id}:
+  /config:
     get:
       summary: Get the configuration for the app
       description: |
         The configuration contains all configuration items relevant to the app.  
-        This resource should be fetched if the app does not have this version in its cache.
+        This resource should be fetched when the app is started or returns from
+        the background.
       tags:
         - Configs
-      parameters:
-        - name: id
-          in: path
-          description: The config (version) identifier hardcoded in the app
-          required: true
-          schema:
-            type: string
       responses:
         200:
           description: Config retrieved succesfully
