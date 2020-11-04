@@ -139,7 +139,7 @@ components:
           enum: ['1', '2a', '2b', '3']
         dateOfLastExposure: 
           type: string
-          format: date
+          description: When was the index last exposed to this contact? We limit the possible selections to dates within the contagious period. If the last meeting was earlier, the app should fill this field with the value 'earlier'. Otherise, with a valid date.
           example: "2020-09-02"
         communication:
           type: string
@@ -245,16 +245,16 @@ components:
     ClassificationDetails:
       type: object
       properties:
-        livedTogetherRisk: 
+        category1Risk: 
           type: boolean
           description: Person in same household or longer than x hours in same house
-        durationRisk:
+        category2ARisk:
           type: boolean
           description: Person was in vicinity longer than 15 minutes
-        distanceRisk:
+        category2BRisk:
           type: boolean
           description: Person was within 1.5m
-        otherRisk:
+        category3Risk:
           type: boolean
           description: Person was at risk (kissed, etc)
     ContactDetails:
