@@ -245,16 +245,16 @@ components:
     ClassificationDetails:
       type: object
       properties:
-        livedTogetherRisk: 
+        category1Risk: 
           type: boolean
           description: Person in same household or longer than x hours in same house
-        durationRisk:
+        category2ARisk:
           type: boolean
           description: Person was in vicinity longer than 15 minutes
-        distanceRisk:
+        category2BRisk:
           type: boolean
           description: Person was within 1.5m
-        otherRisk:
+        category3Risk:
           type: boolean
           description: Person was at risk (kissed, etc)
     ContactDetails:
