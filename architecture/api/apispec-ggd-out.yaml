@@ -139,7 +139,7 @@ components:
           enum: ['1', '2a', '2b', '3']
         dateOfLastExposure: 
           type: string
-          format: date
+          description: When was the index last exposed to this contact? We limit the possible selections to dates within the contagious period. If the last meeting was earlier, the app should fill this field with the value 'earlier'. Otherise, with a valid date.
           example: "2020-09-02"
         communication:
           type: string
