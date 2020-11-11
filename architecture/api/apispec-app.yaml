@@ -2,14 +2,17 @@ openapi: 3.0.1
 info:
   title: DBCO App - App to backend interface
   description: |
-    This specification describes the interface between the app and the app backend.    
+    This specification describes the interface between the app and the app backend. 
+    
+    The interface uses higher-level encryption/decryption, hashing and key exchange
+    tools provided by the Sodium library (https://libsodium.gitbook.io/doc/). 
   contact:
     name: Ministerie van Volksgezondheid Welzijn en Sport coordination repository
     url: https://github.com/minvws/nl-covid19-dbco-app-coordination
   license:
     name: European Union Public License v. 1.2
     url: https://github.com/minvws/nl-covid19-notification-app-coordination/blob/master/LICENSE.txt
-  version: 0.1.0
+  version: 0.3.0
 servers:
   - url: https://tbd.example.com/v1
 tags:
@@ -71,11 +74,27 @@ paths:
     post:
       summary: Pair a patient device to a case
       description: |
-        This method is used from a device to authorize / pair a case registered earlier by a caregiver through
+        This method is used from a device / client to authorize / pair a case registered earlier by a caregiver through
         the DBCO portal. The caregiver will communicate the pairing code out-of-band to the user, for example
         through a phone call or text message. The user will then enter the code inside the app after which this method
         is called. The provided encrypted client public key will be used to establish a shared secret between client
-        and health authority using the  Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) agreement protocol.
+        and health authority using the Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) agreement protocol.
+        
+        The client key pair should be generated using the Sodium `crypto_kx_keypair` method. The generated public 
+        key should be sealed (encrypted) using the `crypto_box_seal` method and the general health authority (GGD)
+        public key that is bundled with the app / client.
+        
+        The sealed health authority public key in the response can be unsealed (decrypted) using the 
+        `crypto_box_seal_open` method and the earlier generated client key pair. 
+        
+        To complete the key exchange the client can call the `crypto_kx_client_session_keys` method using its
+        client key pair and the received case / client specific health authority public key. This results in
+        a secret key that can be used to send/transmit data to the server and a secret key that can be used to
+        read data from the server.
+        
+        Some API calls require a _token_ for receiving or sending case data. This token is a hexadecimal 
+        representation of a hash that can be derived from the concatenated shared secret keys (_rx_ + _tx_) using the 
+        `crypto_generichash` method.
       tags:
         - Pairings
       requestBody:
@@ -98,10 +117,13 @@ paths:
       summary: Get a user specific set of tasks and other case data.
       description: |
          Get the list of tasks for a specific BCO case. This will be fetched on a per-user basis.
+         
+         The token is derived from the shared secrets established during the pairing process. The
+         returned case data can be unsealed / decrypted using the _rx_ shared key.
       parameters:
         - name: token
           in: path
-          description: SHA-256 token derived from the shared secret between client and health authority.
+          description: Token derived from the shared secret between client and health authority.
           required: true
           schema:
             type: string
@@ -118,11 +140,14 @@ paths:
       summary: Post the results of the tasks to the health authority backend.
       description: |
         All answers will be updated every time this method is called. The health authority should replace 
-        any data that have the same identifier. The response will be entirely encrypted with a public key.     
+        any data that have the same identifier. 
+        
+        The token is derived from the shared secrets established during the pairing process. The
+        case data should be sealed / encrypted using the /tx/ shared key.
       parameters:
         - name: token
           in: path
-          description: SHA-256 token derived from the shared secret between client and health authority.
+          description: Token derived from the shared secret between client and health authority.
           required: true
           schema:
             type: string
@@ -175,64 +200,50 @@ components:
     PairingRequest:
       type: object
       required: 
-        - case
-        - encryptedClientPublicKey
+        - pairingCode
+        - sealedClientPublicKey
       properties:
         pairingCode: 
           type: string
-        encryptedClientPublicKey:
-          $ref: '#/components/schemas/EncryptedData'
+        sealedClientPublicKey:
+          $ref: '#/components/schemas/SealedData'
           description: With the (in the client embedded) general health authority public key encrypted client public key.                
     PairingResponse:
       type: object
       required: 
-        - case
-        - encryptedHealthAuthorityPublicKey
+        - sealedHealthAuthorityPublicKey
       properties:
-        case: 
-          type: object
-          required:
-            - expiresAt
-          properties:
-            expiresAt:
-              type: string
-              format: date
-              example: "2020-11-10T00:00:00.000Z"
-              description: Expiration date/time for the case and signing key. After this time it is not possible anymore to submit (new) data.  
-        encryptedHealthAuthorityPublicKey:
-          $ref: '#/components/schemas/EncryptedData'
-          description: With the client public key encrypted public key of the health authority specific for this case.    
+        sealedHealthAuthorityPublicKey:
+          $ref: '#/components/schemas/SealedData'
+          description: With the client public key encrypted public key of the health authority specific for this case / client.    
           
     CaseResponse:
       type: object
       required: 
-        - encryptedCase
+        - sealedCase
       properties:
-        encryptedCase:
-          $ref: '#/components/schemas/EncryptedData'
-          description: Encrypted case data using the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema  .      
+        sealedCase:
+          $ref: '#/components/schemas/SealedData'
+          description: Encrypted case data using the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema.      
              
     CaseSubmitRequest:
       type: object
       required: 
-        - encryptedCase
+        - sealedCase
       properties:
-        encryptedCase:
-          $ref: '#/components/schemas/EncryptedData'
-          description: Encrypted case data using the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema  .      
+        sealedCase:
+          $ref: '#/components/schemas/SealedData'
+          description: Encrypted case data using the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema.
           
-    EncryptedData:        
+    SealedData:        
       type: object
       required:
-        - iv
-        - payload
+        - ciphertext
+        - nonce
       properties:
-        key:
-          description: Optional public key (in case of asymetric encryption)
+        ciphertext:
           type: string
-        iv:
-          description: Initialization vector          
+          description: Encrypted payload        
+        nonce:
           type: string
-        payload:
-          type: string
-          description: Encrypted string.
+          description: Nonce used for the encryption
