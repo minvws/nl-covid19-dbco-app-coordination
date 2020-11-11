@@ -3,40 +3,43 @@ info:
   title: DBCO App - Backend to GGD Interface
   description: |
     This specification describes the interface between the DBCO app backend and the GGD middleware.    
+    
+    The interface uses higher-level encryption/decryption, hashing and key exchange
+    tools provided by the Sodium library (https://libsodium.gitbook.io/doc/).     
   contact:
     name: Ministerie van Volksgezondheid Welzijn en Sport coordination repository
     url: https://github.com/minvws/nl-covid19-dbco-app-coordination
   license:
     name: European Union Public License v. 1.2
     url: https://github.com/minvws/nl-covid19-notification-app-coordination/blob/master/LICENSE.txt
-  version: 0.1.0
+  version: 0.2.0
 servers:
   - url: https://tbd.example.com/v1
 tags:
   - name: Questions
     description: |
        Retrieving the sets of predefined questions
-  - name: Tasks
+  - name: Cases
     description: |
-      Retrieving tasks
-  - name: Results
+      Delivering case data / task results from the client
+  - name: Clients
     description: |
-      Delivering data 
+      Registering clients.
 paths:
   /questionnaires:
     get:
       tags:
-      - Questions
+        - Questions
       summary: The question lists 
       description: |
          Get the list of questions that need to be asked depending on the tasktype and category.
       parameters: 
-      - in: header
-        name: Accept-Language
-        description: The language in which to retrieve the questionnaires
-        schema:
-          type: string
-        example: "nl-NL"
+        - in: header
+          name: Accept-Language
+          description: The language in which to retrieve the questionnaires
+          schema:
+            type: string
+          example: "nl-NL"
       operationId: getQuestionnaires
       responses:
         200:
@@ -45,13 +48,15 @@ paths:
              application/json:
                schema:
                  $ref: '#/components/schemas/QuestionnaireListResponse'
+                 
   /tasks:
     get:
       tags:
         - Tasks
       summary: Get a generic set of tasks that is user independent.
       description: |
-         Get the list of tasks that can be used for all users. This will not be fetched on a per-user basis but only a few times per day, as it is fairly static data that doesn't change often.
+         Get the list of tasks that can be used for all users. This will not be fetched on a per-user basis but only a few times per day, as it 
+         is fairly static data that doesn't change often.
       operationId: getTasks
       responses:
         200:
@@ -60,40 +65,66 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskList'
-  /cases/{caseId}:
-    get:
+
+  /cases/{caseId}/clients:
+    post:
       tags:
-        - Tasks
-      summary: Get a user specific set of tasks.
+        - Clients
+      summary: Pair a patient device to a case
       description: |
-         Get the list of tasks for a specific BCO case. This will be fetched on a per-user basis.
+        Completes the pairing process between a client device and the health authority. 
+        
+        The body contains the sealed (base64 encoded) client public key that can be unsealed / decrypted 
+        using the Sodium `crypto_box_unseal` and general health authority key pair. The API generates a case 
+        specific key pair using the `crypto_kx_keypair` method. The generated public  key should be sealed 
+        (encrypted) using the `crypto_box_seal` method and the unsealed client public key.
+        
+        To complete the key exchange the server can call the `crypto_kx_server_session_keys` method using its
+        case specific key pair and the received client public key. This results in a secret key that can be used to
+        send/transmit data to the client and a secret key that can be used to read data from the client.
+        
+        Some API calls require a _token_ for receiving or sending case data. This token is a hexadecimal 
+        representation of a hash that can be derived from the concatenated shared secret keys (_tx_ + _rx_) using the 
+        `crypto_generichash` method. (This is deliberately the reverse order from how the client generates the hash).
       parameters:
         - name: caseId
           in: path
-          description: caseId to retrieve the tasks for
+          description: Case identifier as communicated by the health portal when registering the case for pairing.
           required: true
           schema:
-            type: string
-      operationId: getTasksByCase
+            type: string        
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              $ref: '#/components/schemas/RegisterClientRequest'
+        required: true
       responses:
-        200:
-          description: Tasks retrieved succesfully
+        201:
+          description: Device pairing succeeded
           content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CaseBody'
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/RegisterClientResponse'        
+                
+  /cases/{token}:
     put:
       tags:
-        - Tasks
+        - Cases
       summary: Post the tasks (plus results) to the GGD backend
       description: |
         All answers will be updated every time this method is called. The GGD should replace any data that have the same identifier.
         Tasks that originate in the app (source:app), should be created on the GGD side.
-        The response will be entirely encrypted with a public key. This is not reflected in the swagger docs to keep the objects readable.    
+
+        The token is derived from the shared secrets established during the pairing process (see the
+        app API spec for more information). The case data is sealed / encrypted using the client's _tx_ shared key
+        and can be unsealed / decrypted using the case specific health authority _rx_ shared key.
+        
+        The case data should follow the scheme '#/components/schemas/CaseBody'.
       parameters:
-        - name: caseId
+        - name: token
           in: path
-          description: caseId that these contacts belong to
+          description: Token derived from the shared secret between client and health authority.
           required: true
           schema:
             type: string
@@ -102,10 +133,10 @@ paths:
         content:
           application/json: 
             schema: 
-             $ref: '#/components/schemas/CaseBody'
+             $ref: '#/components/schemas/SealedData'
       responses:
-        202:
-          description: Data will be processed
+        204:
+          description: Data is processed
 components:
   schemas:
     Task:
@@ -392,3 +423,33 @@ components:
           type: array
           items: 
             $ref: '#/components/schemas/Task'
+    RegisterClientRequest:
+      type: object
+      required: 
+        - pairingCode
+        - sealedClientPublicKey
+      properties:
+        sealedClientPublicKey:
+          $ref: '#/components/schemas/SealedData'
+          description: With the (in the client embedded) general health authority public key encrypted client public key.                
+    RegisterClientResponse:
+      type: object
+      required: 
+        - sealedHealthAuthorityPublicKey
+      properties:
+        sealedHealthAuthorityPublicKey:
+          $ref: '#/components/schemas/SealedData'
+          description: With the client public key encrypted public key of the health authority specific for this case / client.    
+          
+    SealedData:        
+      type: object
+      required:
+        - ciphertext
+        - nonce
+      properties:
+        ciphertext:
+          type: string
+          description: Encrypted payload        
+        nonce:
+          type: string
+          description: Nonce used for the encryption                 
