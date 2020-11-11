@@ -94,7 +94,7 @@ paths:
         
         Some API calls require a _token_ for receiving or sending case data. This token is a hexadecimal 
         representation of a hash that can be derived from the concatenated shared secret keys (_rx_ + _tx_) using the 
-        `crypto_generichash` method.
+        `crypto_generichash` method. (This is deliberately the reverse order from how the server generates the hash).
       tags:
         - Pairings
       requestBody:
