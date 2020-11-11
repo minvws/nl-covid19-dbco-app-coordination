@@ -12,7 +12,7 @@ info:
   license:
     name: European Union Public License v. 1.2
     url: https://github.com/minvws/nl-covid19-notification-app-coordination/blob/master/LICENSE.txt
-  version: 0.2.0
+  version: 0.2.1
 servers:
   - url: https://tbd.example.com/v1
 tags:
@@ -113,7 +113,6 @@ components:
       properties:
         sealedCase:
           $ref: '#/components/schemas/SealedData'
-          description: Encrypted case data using the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema.          
         caseExpiresAt:
           type: string
           format: date
@@ -122,6 +121,7 @@ components:
           
     SealedData:        
       type: object
+      description: Encrypted case data using the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema.  
       required:
         - ciphertext
         - nonce
