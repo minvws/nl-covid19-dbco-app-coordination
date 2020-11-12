@@ -112,16 +112,17 @@ components:
         - caseExpiresAt
       properties:
         sealedCase:
-          $ref: '#/components/schemas/SealedData'
+          allOf: 
+            - $ref: '#/components/schemas/SealedData'
+          description: The encrypted data should be a valid object conforming to the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema definition.  
         caseExpiresAt:
           type: string
           format: date
           example: "2020-11-10T00:00:00.000Z"
           description: Expiration date/time for the case data. After this time it is not possible anymore for the client to fetch or submit case data.
-          
     SealedData:        
       type: object
-      description: Encrypted case data using the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema.  
+      description: Encrypted data.
       required:
         - ciphertext
         - nonce
