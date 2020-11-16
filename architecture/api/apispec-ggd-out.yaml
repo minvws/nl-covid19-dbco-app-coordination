@@ -439,6 +439,11 @@ components:
           type: string
           format: date
           example: "2020-09-01"
+        windowExpiresAt:
+          description: The moment until when the user can deliver data.
+          type: string
+          format: date-time
+          example: "2020-09-02T10:00:00Z"
         tasks:
           description: The tasks of this case
           type: array
