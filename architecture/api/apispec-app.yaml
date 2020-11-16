@@ -241,7 +241,7 @@ components:
         pairingCode: 
           type: string
         sealedClientPublicKey:
-          $ref: '#/components/schemas/SealedData'
+          type: string
           description: With the (in the client embedded) general health authority public key encrypted client public key.                
     PairingResponse:
       type: object
@@ -249,7 +249,7 @@ components:
         - sealedHealthAuthorityPublicKey
       properties:
         sealedHealthAuthorityPublicKey:
-          $ref: '#/components/schemas/SealedData'
+          type: string
           description: With the client public key encrypted public key of the health authority specific for this case / client.    
           
     CaseResponse:
