@@ -236,7 +236,11 @@ components:
               type: boolean
               description: if enabled the app should show a share sheet for sharing the treatment perspective 
               example: false 
-          
+            enablePerspectiveCopy: 
+              type: boolean
+              description: if enabled the app should show a button for copying the treatment perspective 
+              example: true 
+         
     QuestionnaireListResponse:
       $ref: 'apispec-ggd-out.yaml#/components/schemas/QuestionnaireListResponse'      
       
