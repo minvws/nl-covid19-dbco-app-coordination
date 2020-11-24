@@ -214,6 +214,10 @@ components:
           type: boolean
           description: "If the index informed the contact, this should be set to true"
           example: true
+        deletedByIndex: 
+           type: boolean 
+           description: the index decided to delete this contact. The server should delete the data associated to this task. 
+           example: false
       required: 
         - uuid
         - taskType
