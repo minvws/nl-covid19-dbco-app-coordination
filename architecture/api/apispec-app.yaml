@@ -2,41 +2,43 @@ openapi: 3.0.1
 info:
   title: DBCO App - App to backend interface
   description: |
-    This specification describes the interface between the app and the app backend.    
+    This specification describes the interface between the app and the app backend. 
+    
+    The interface uses higher-level encryption/decryption, hashing and key exchange
+    tools provided by the Sodium library (https://libsodium.gitbook.io/doc/). 
   contact:
     name: Ministerie van Volksgezondheid Welzijn en Sport coordination repository
     url: https://github.com/minvws/nl-covid19-dbco-app-coordination
   license:
     name: European Union Public License v. 1.2
     url: https://github.com/minvws/nl-covid19-notification-app-coordination/blob/master/LICENSE.txt
-  version: 0.1.0
+  version: 0.3.0
 servers:
   - url: https://tbd.example.com/v1
 tags:
   - name: Configs
     description: Retrieving app config
-  - name: Pairings
-    description: Pairing device
-  - name: Tasks
-    description: Retrieving and delivering tasks
   - name: Questions
     description: Generic questionnaires
+  - name: Tasks
+    description: Generic tasks
+  - name: Pairings
+    description: Pairing device
+  - name: Cases
+    description: Retrieving and delivering case tasks / data
 paths:
-  /configs/{id}:
+  /config:
     get:
       summary: Get the configuration for the app
       description: |
         The configuration contains all configuration items relevant to the app.  
-        This resource should be fetched if the app does not have this version in its cache.
+        This resource should be fetched when the app is started or returns from
+        the background. 
+      parameters: 
+        - $ref: '#/components/parameters/traceParam'
+        - $ref: '#/components/parameters/sentParam'
       tags:
         - Configs
-      parameters:
-        - name: id
-          in: path
-          description: The config (version) identifier hardcoded in the app
-          required: true
-          schema:
-            type: string
       responses:
         200:
           description: Config retrieved succesfully
@@ -44,16 +46,67 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ConfigResponse'
+  /questionnaires:
+    get:
+      parameters:
+        - $ref: '#/components/parameters/traceParam'
+        - $ref: '#/components/parameters/sentParam'
+      tags: 
+        - Questions
+      summary: Retrieve the most recent questionnaires
+      responses:
+        200:
+          description: Questionnaires retrieved succesfully
+          content:
+            application/json:
+              schema:
+                 $ref: '#/components/schemas/QuestionnaireListResponse'                
+  /tasks:
+    get:
+      parameters: 
+        - $ref: '#/components/parameters/traceParam'
+        - $ref: '#/components/parameters/sentParam'
+      tags:
+        - Tasks
+      summary: Get a generic set of tasks that is user independent.
+      description: |
+         Get the list of tasks that can be used for all users. This will not be fetched on a per-user basis but 
+         only a few times per day, as it is fairly static data that doesn't change often.
+      responses:
+        200:
+          description: Tasks retrieved succesfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TaskListResponse'
   /pairings:
     post:
       summary: Pair a patient device to a case
       description: |
-        This method is used from a device to authorize / pair a case registered earlier by a caregiver through
+        This method is used from a device / client to authorize / pair a case registered earlier by a caregiver through
         the DBCO portal. The caregiver will communicate the pairing code out-of-band to the user, for example
         through a phone call or text message. The user will then enter the code inside the app after which this method
-        is called. After validating and authorizing the pairing code the system will generate a 256-bit signing
-        key that the device can later use to submit data to the system. The pairing code will be invalid after this
-        request.
+        is called. The provided encrypted client public key will be used to establish a shared secret between client
+        and health authority using the Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) agreement protocol.
+        
+        The client key pair should be generated using the Sodium `crypto_kx_keypair` method. The generated public 
+        key should be sealed (encrypted) using the `crypto_box_seal` method and the general health authority (GGD)
+        public key that is bundled with the app / client.
+        
+        The sealed health authority public key in the response can be unsealed (decrypted) using the 
+        `crypto_box_seal_open` method and the earlier generated client key pair. 
+        
+        To complete the key exchange the client can call the `crypto_kx_client_session_keys` method using its
+        client key pair and the received case / client specific health authority public key. This results in
+        a secret key that can be used to send/transmit data to the server and a secret key that can be used to
+        read data from the server.
+        
+        Some API calls require a _token_ for receiving or sending case data. This token is a hexadecimal 
+        representation of a hash that can be derived from the concatenated shared secret keys (_rx_ + _tx_) using the 
+        `crypto_generichash` method. (This is deliberately the reverse order from how the server generates the hash).
+      parameters: 
+        - $ref: '#/components/parameters/traceParam'
+        - $ref: '#/components/parameters/sentParam'
       tags:
         - Pairings
       requestBody:
@@ -69,77 +122,79 @@ paths:
             application/json: 
               schema: 
                 $ref: '#/components/schemas/PairingResponse'
-  /tasks:
+  /cases/{token}:
     get:
       tags:
-        - Tasks
-      summary: Get a generic set of tasks that is user independent.
+        - Cases
+      summary: Get a user specific set of tasks and other case data.
       description: |
-         Get the list of tasks that can be used for all users. This will not be fetched on a per-user basis but only a few times per day,
-          as it is fairly static data that doesn't change often.
-      responses:
-        200:
-          description: Tasks retrieved succesfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TaskList'
-  /questionnaires:
-    get:
-      tags: 
-        - Questions
-      summary: Retrieve the most recent questionnaires
-      responses:
-        200:
-          description: Questionnaires retrieves succesfully
-          content:
-            application/json:
-              schema:
-                 $ref: '#/components/schemas/QuestionnaireListResponse'
-  /cases/{caseId}:
-    get:
-      tags:
-        - Tasks
-      summary: Get a user specific set of tasks.
-      description: |
-         Get the list of tasks for a specicic BCO case. This will be fetched on a per-user basis.
+         Get the list of tasks for a specific BCO case. This will be fetched on a per-user basis.
+         
+         The token is derived from the shared secrets established during the pairing process. The
+         returned case data can be unsealed / decrypted using the _rx_ shared key.
       parameters:
-        - name: caseId
+        - name: token
           in: path
-          description: Case to retrieve the tasks for
+          description: Token derived from the shared secret between client and health authority.
           required: true
           schema:
             type: string
+        - $ref: '#/components/parameters/traceParam'
+        - $ref: '#/components/parameters/sentParam'
       responses:
         200:
           description: Tasks retrieved succesfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CaseBody'
+                $ref: '#/components/schemas/CaseResponse'
     put:
       tags:
-        - Results
-      summary: Post the results of the tasks to the GGD backend
+        - Cases
+      summary: Post the results of the tasks to the health authority backend.
       description: |
-        All answers will be updated every time this method is called. The GGD should replace any data that have the same identifier.
-        The response will be entirely encrypted with a public key.     
+        All answers will be updated every time this method is called. The health authority should replace 
+        any data that have the same identifier. 
+        
+        The token is derived from the shared secrets established during the pairing process. The
+        case data should be sealed / encrypted using the /tx/ shared key.
       parameters:
-        - name: caseId
+        - name: token
           in: path
-          description: Case that these results belong to
+          description: Token derived from the shared secret between client and health authority.
           required: true
           schema:
             type: string
+        - $ref: '#/components/parameters/traceParam'
+        - $ref: '#/components/parameters/sentParam'
       requestBody:
         content:
           application/json: 
             schema: 
-             $ref: '#/components/schemas/CaseBody'
+             $ref: '#/components/schemas/CaseSubmitRequest'
       responses:
         202:
           description: Data accepted for processing           
 components:
+  parameters:
+    traceParam:
+      name: DBCO-Trace-Id
+      in: header
+      description: |
+        A unique id generated by the originator of a request. It is passed along the way through all systems so that logging of various components can be related. If request received a traceId header, it should pass on this traceId header to any API call it makes. If it didn't receive one, a new, unique traceId should be generated.
+      required: true
+      schema:
+        type: string
+        format: uuid
+    sentParam:
+      name: DBCO-Sent
+      in: header
+      description: |
+        The date and time that this chain of events started. Typically an end user app will provide the sentAt header when calling an API. The api passes it on to the next API, so that in the deepest of systems we can still know when the original request started.
+      required: true
+      schema:
+        type: string
+        format: date-time
   schemas:
     ConfigResponse:
       type: object
@@ -170,64 +225,60 @@ components:
           type: string
           description: If set, the upgrade dialog can link to the app store url using this link.
           example: "https://appsto.re/...."
+          
+    QuestionnaireListResponse:
+      $ref: 'apispec-ggd-out.yaml#/components/schemas/QuestionnaireListResponse'      
+      
+    TaskListResponse:
+      $ref: 'apispec-ggd-out.yaml#/components/schemas/TaskList'
+      
     PairingRequest:
       type: object
-      required:
-      - pairingCode
+      required: 
+        - pairingCode
+        - sealedClientPublicKey
       properties:
-        pairingCode:
+        pairingCode: 
           type: string
-          description: Device pairing code.
+        sealedClientPublicKey:
+          type: string
+          description: With the (in the client embedded) general health authority public key encrypted client public key.                
     PairingResponse:
       type: object
-      required:
-      - caseId
-      - caseExpiresAt
-      - signingKey
+      required: 
+        - sealedHealthAuthorityPublicKey
       properties:
-        caseId: 
+        sealedHealthAuthorityPublicKey:
           type: string
-          description: The case identifier associated with the pairing code.
-        caseExpiresAt:
-          type: string
-          format: date
-          example: "2020-11-10T00:00:00.000Z"
-          description: Expiration date/time for the case and signing key. After this time it is not possible anymore to submit (new) data. 
-        signingKey:
-          type: string
-          description: Random generated signing key that can be used to sign data that is submitted to the back-end.        
-    CaseBody:
-      $ref: 'apispec-ggd-out.yaml#/components/schemas/CaseBody'
-    TaskList:
-      $ref: 'apispec-ggd-out.yaml#/components/schemas/TaskList'
-    SecureTaskResults:        
+          description: With the client public key encrypted public key of the health authority specific for this case / client.    
+          
+    CaseResponse:
+      type: object
+      required: 
+        - sealedCase
+      properties:
+        sealedCase:
+          $ref: '#/components/schemas/SealedData'
+          description: Encrypted case data using the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema.      
+             
+    CaseSubmitRequest:
+      type: object
+      required: 
+        - sealedCase
+      properties:
+        sealedCase:
+          $ref: '#/components/schemas/SealedData'
+          description: Encrypted case data using the 'apispec-ggd-out.yaml#/components/schemas/CaseBody' schema.
+          
+    SealedData:        
       type: object
       required:
-        - key
-        - iv
-        - payload
+        - ciphertext
+        - nonce
       properties:
-        key:
-          description: AES public symmetric key
+        ciphertext:
           type: string
-        iv:
-          description: AES initialization vector          
+          description: Encrypted payload        
+        nonce:
           type: string
-        payload:
-          type: string
-          description: |
-            Encrypted JSON string using the GGD public key. The JSON should follow the schema of
-            '#/components/schemas/TaskResultList'.
-    TaskResultsRequest:
-      type: object
-      required:
-        - signature
-        - secureResults
-      properties:
-        signature:
-          type: string
-          description: Signature for the encrypted result data. Signed using the signing key provided earlier.          
-        secureResults:
-          $ref: '#/components/schemas/SecureTaskResults'
-    QuestionnaireListResponse:
-      $ref: 'apispec-ggd-out.yaml#/components/schemas/QuestionnaireListResponse'
+          description: Nonce used for the encryption
