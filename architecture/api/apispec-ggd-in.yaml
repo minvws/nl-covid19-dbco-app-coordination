@@ -100,9 +100,9 @@ components:
     CaseRegistrationRequest:
       type: object
       required:
-        - caseId
+        - caseUuid
       properties:
-        caseId: 
+        caseUuid: 
           type: string
           description: Case identifier from the GGD system.
         caseExpiresAt:
@@ -113,11 +113,11 @@ components:
     CaseRegistrationResponse:
       type: object
       required:
-        - caseId
+        - caseUuid
         - pairingCode
         - pairingCodeExpiresAt
       properties:
-        caseId: 
+        caseUuid: 
           type: string
           description: Case identifier.
         pairingCode:
