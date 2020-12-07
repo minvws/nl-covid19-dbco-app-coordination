@@ -225,7 +225,22 @@ components:
           type: string
           description: If set, the upgrade dialog can link to the app store url using this link.
           example: "https://appsto.re/...."
-          
+        featureFlags: 
+          type: object
+          properties:
+            enableContactCalling: 
+              type: boolean
+              description: if enabled the app should show the ability to directly call a contact. 
+              example: false 
+            enablePerspectiveSharing: 
+              type: boolean
+              description: if enabled the app should show a share sheet for sharing the treatment perspective 
+              example: false 
+            enablePerspectiveCopy: 
+              type: boolean
+              description: if enabled the app should show a button for copying the treatment perspective 
+              example: true 
+         
     QuestionnaireListResponse:
       $ref: 'apispec-ggd-out.yaml#/components/schemas/QuestionnaireListResponse'      
       
