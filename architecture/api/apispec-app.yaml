@@ -23,7 +23,7 @@ tags:
   - name: Tasks
     description: Generic tasks
   - name: Pairings
-    description: Pairing device
+    description: Pair device
   - name: Cases
     description: Retrieving and delivering case tasks / data
 paths:
@@ -79,14 +79,74 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TaskListResponse'
+  /pairingrequests:
+    post:
+      summary: Index initiated pairing request
+      description: |
+        This method is used from a device / client to initiate the pairing process. The method will return a code
+        that the index should communicate out-of-band (e.g. by phone) to the caregiver and a token that can 
+        be used to poll the status of the pairing request.
+        
+        The caregiver will enter the code for the case that belongs to the index. This will change the status of the pairing
+        request to "completed" and generate a pairing code that will be returned when the client device polls for the
+        pairing request status. The resulting pairing code can be used by the client to finish the pairing 
+        process using the "pairings" call.
+        
+        The body for this call should be empty.
+      parameters: 
+        - $ref: '#/components/parameters/traceParam'
+        - $ref: '#/components/parameters/sentParam'
+      tags:
+        - Pairings
+      responses:
+        201:
+          description: Pairing request code and token.
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/PairingRequestCreateResponse'    
+  /pairingrequests/{token}:
+    get:
+      summary: Retrieve the pairing request status
+      description: |
+        This method is used from a device / client to retrieve (poll) the current status for a index initiated pairing
+        request. 
+        
+        When the pairing request is still pending, the response will contain the status, expiry and refresh delay.
+        The client should respect the refresh delay before retrieving the status again.
+        
+        Once the pairing request has been completed by the caregiver the call will return a one-time response 
+        containing the pairing code (and expiry) that can be used to finish the pairing process using the 
+        "pairings" call. Subsequent calls will result in an error.
+      tags:
+        - Pairings
+      parameters:
+        - name: token
+          in: path
+          description: Pairing request token.
+          required: true
+          schema:
+            type: string
+        - $ref: '#/components/parameters/traceParam'
+        - $ref: '#/components/parameters/sentParam'
+      responses:
+        201:
+          description: Pairing request status.
+          content:
+            application/json: 
+              schema: 
+                $ref: '#/components/schemas/PairingRequestGetResponse'                                   
   /pairings:
     post:
-      summary: Pair a patient device to a case
+      summary: Pair an index device to a case
       description: |
-        This method is used from a device / client to authorize / pair a case registered earlier by a caregiver through
-        the DBCO portal. The caregiver will communicate the pairing code out-of-band to the user, for example
-        through a phone call or text message. The user will then enter the code inside the app after which this method
-        is called. The provided encrypted client public key will be used to establish a shared secret between client
+        This method is used from a device / client to authorize / pair a case from the GGD Contact portal.
+        
+        The pairing code that is used by this process can be retrieved either using an index initiated pairing
+        request (see the "pairingrequests" API call) or communicated out-of-band (e.g. by phone) by the caregiver.
+        In the latter case the index will need to enter the code inside the app.
+        
+        The provided encrypted client public key will be used to establish a shared secret between client
         and health authority using the Elliptic Curve Diffie-Hellman Ephemeral (ECDHE) agreement protocol.
         
         The client key pair should be generated using the Sodium `crypto_kx_keypair` method. The generated public 
@@ -121,7 +181,7 @@ paths:
           content:
             application/json: 
               schema: 
-                $ref: '#/components/schemas/PairingResponse'
+                $ref: '#/components/schemas/PairingResponse'       
   /cases/{token}:
     get:
       tags:
@@ -246,7 +306,45 @@ components:
       
     TaskListResponse:
       $ref: 'apispec-ggd-out.yaml#/components/schemas/TaskList'
-      
+
+    PairingRequestCreateResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token that can be used to retrieve the status for the pairing request.
+        code:
+          type: string
+          description: Pairing request code that should be communicated by the index to the caregiver.
+        status:
+          type: string
+          description: Pairing request status, should be "pending".
+        expiresAt:
+          type: string
+          description: Date/time when the request expires.
+        refreshDelay:
+          type: integer
+          description: Delay (in seconds) before the client is allowed to poll again for the status.  
+          
+    PairingRequestGetResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          description: Pairing request status; "pending" or "completed".
+        expiresAt:
+          type: string
+          description: Date/time when the request expires. Will only be returned when the status is "pending".
+        refreshDelay:
+          type: integer
+          description: Delay (in seconds) before the client is allowed to poll again for the status. Will only be returned when the status is "pending".  
+        pairingCode:
+          type: string
+          description: Pairing code. Will only be returned when the status is "completed".
+        pairingCodeExpiresAt:
+          type: string
+          description: Pairing code expiry date/time. Will only be returned when the status is "completed".
+                
     PairingRequest:
       type: object
       required: 
