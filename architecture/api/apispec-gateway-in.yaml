@@ -1,0 +1,223 @@
+openapi: 3.0.1
+info:
+  title: DBCO Gateway - CoronIT to backend
+  description: |
+    This specification describes the interface between the CoronIT ESB and the app gateway.   
+  contact:
+    name: Ministerie van Volksgezondheid Welzijn en Sport coordination repository
+    url: https://github.com/minvws/nl-covid19-dbco-app-coordination
+  license:
+    name: European Union Public License v. 1.2
+    url: https://github.com/minvws/nl-covid19-notification-app-coordination/blob/master/LICENSE.txt
+  version: 1.0.0
+servers:
+  - url: https://tbd.example.com/v1
+tags:
+  - name: Cases
+    description: Deliver cases
+paths:
+  /cases:
+    post:
+      tags:
+        - Cases    
+      summary: Deliver a new case
+      description: |
+        This method will be called to store a new positive corona case in the gateway. The gateway will store the case in the database of the backend in a secure way. All new cases will
+      requestBody:
+        content:
+          application/json: 
+            schema: 
+              $ref: '#/components/schemas/NewCaseRequest'
+      responses:
+        201:
+          description: Case delivered successfully
+          content: 
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/NewCaseResponse'
+        400:
+          description: Case invalid data
+          content: 
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/NewCaseBadRequestResponse'
+        500:
+          description: Internal server error
+          content: 
+            application/json: 
+              schema:
+                $ref: '#/components/schemas/NewCaseInternalServerErrorResponse'
+components:
+  schemas:
+    NewCaseRequest:
+      type: object
+      required:
+        - result
+        - dateOfSymptomOnset
+        - dateResult
+        - dateTimeFirstSeen
+        - language
+        - location
+        - contact
+        - index
+        - anamnesis
+      properties:
+        result:
+          type: boolean
+          example: true
+          description: The result of the corona test
+        dateOfSymptomOnset:
+          type: string
+          format: date
+          example: "2021-02-05"
+          description: The date of the first symptoms of the index (CoronIT field; datamart_fact_afspraak.d_eerste_ziektedag)
+        dateResult:
+          type: string
+          format: date-time
+          example: "2021-02-05T13:43:43.511Z"
+          description: The date of the of the corona test results (CoronIT field; Datum_uitslag)
+        dateTimeFirstSeen:
+          type: string
+          format: date-time
+          example: "2021-02-05T13:43:43.511Z"
+          description: The first date the index was seen in the system (CoronIT field; Test_mutatie_Keys_Prd.date_time_first_seen)
+        language:
+          type: string
+          example: "Nederlands"
+          description: The preferred communication language for the GGD (CoronIT field; Taal)
+        location:
+          type: string
+          example: "Schiphol"
+          description: The preferred communication language for the GGD (CoronIT field; afnamelocatie)
+        monsterNumber:
+          type: string
+          example: "Schiphol"
+          description: The monsternumber in CoronIT (CoronIT field; Monsternummer)
+        symptoms:
+          type: string
+          example: "Kortademigheid/benauwdheid"
+          description: Only one of the following symptoms; Keelpijn, Kortademigheid/benauwdheid (CoronIT field; Klachten.value)
+        otherSymptoms:
+          type: string
+          example: "Vermoeidheid;Hoofdpijn;Verlies van eetlust"
+          description: The remaining symptoms separated by a ';' (CoronIT field; Klachten.value)
+        contact:
+          type: object
+          required: 
+            - phone
+          properties:
+            email:
+              type: string
+              example: "example@example.com"
+              description: The contact email of the index
+            phone:
+              type: string
+              example: "0612345678"
+              description: The contact phone number of the index
+        index:
+          type: object
+          required: 
+            - firstName
+            - dateOfBirth
+            - gender
+            - postalCode
+            - houseNumber
+            - street
+            - town
+          properties:
+            firstName:
+              type: string
+              example: "Henk"
+              description: The first name of the index (CoronIT field; Voornaam)
+            lastLame:
+              type: string
+              example: "Potvis"
+              description: The last name including the middle name of the index (CoronIT field; Achternaam)
+            dateOfBirth:
+              type: string
+              format: date
+              example: "1994-11-05"
+              description: The date of birth of the index (CoronIT field; Geboortedatum)
+            bsn:
+              type: string
+              example: "414209485"
+              description: The last name including the middle name of the index (CoronIT field; BSN)
+            gender:
+              type: string
+              example: "man"
+              description: The gender of the index (CoronIT field; Geslacht)
+            postalCode:
+              type: string
+              example: "9999AA"
+              description: The postal code of the index (CoronIT field; Postcode)
+            houseNumber:
+              type: integer
+              example: 23
+              description: The house number of the address of the index (CoronIT field; Huisnummer)
+            houseNumberSuffix:
+              type: string
+              example: "A"
+              description: The house number suffix of the address of the index (CoronIT field; Toevoeging)
+            street:
+              type: string
+              example: "Pietersstraat"
+              description: The house number suffix of the address of the index (CoronIT field; Straat)
+            town:
+              type: string
+              example: "Amersfoort"
+              description: The house number suffix of the address of the index (CoronIT field; Plaats)
+        anamnesis:
+          type: object
+          required:
+            - targetGroup
+          properties:
+            targetGroup:
+              type: object
+              required: 
+                - healthCareProvider
+                - profession
+              properties:
+                healthCareProvider:
+                  type: string
+                  example: "GGZ"
+                  description: The health care provider of the index (CoronIT field; anamnese_anamnese.doelgroep_type_zorgverleners_organisatie)
+                profession:
+                  type: string
+                  example: "GGZ"
+                  description: The profession of the index (CoronIT field; anamnese_anamnese .doelgroep_type_contactberoep)
+            employer:
+              type: object
+              properties:
+                function:
+                  type: string
+                  example: "Developer"
+                  description: The function of the index (CoronIT field; anamnese_anamnese .werkgever_functie)
+                lastWorkDay:
+                  type: string
+                  format: date
+                  example: "2021-02-05"
+                  description: The last workday of the index (CoronIT field; anamnese_anamnese.werkgever_laatste_werkdag)
+                location:
+                  type: string
+                  example: "Amsterdam"
+                  description: The work location of the index (CoronIT field; anamnese_anamnese .werkgever_locatie)
+                organisation:
+                  type: string
+                  example: "GGD"
+                  description: The work organisation of the index (CoronIT field; anamnese_anamnese .werkgever_locatie)
+    NewCaseResponse:
+      type: object
+    NewCaseBadRequestResponse:
+      type: object
+      properties:
+        todo: 
+          type: string
+          description: todo
+          example: "todo"
+    NewCaseInternalServerErrorResponse:
+      type: object
+      properties:
+        todo: 
+          type: string
+          description: todo
+          example: "todo"
