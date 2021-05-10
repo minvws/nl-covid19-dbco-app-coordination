@@ -1,0 +1,14 @@
+@startuml
+participant PortalAPI          as PortalAPI
+participant HealthAuthorityAPI as HAAPI
+database    MySQL              as MySQL
+participant PrivateAPI         as PrivateAPI
+database    SluiceRedis        as Redis
+
+PortalAPI  ->  HAAPI      : POST /v1/cases/{caseUuid}/exports
+HAAPI      ->  MySQL      : Get case data / tasks
+MySQL      --> HAAPI      : Case data / tasks
+HAAPI      ->  PrivateAPI : POST /v1/cases/{token}
+PrivateAPI ->  Redis      : Store sealed case data / tasks by token
+HAAPI      --> PortalAPI  : No content
+@enduml

@@ -1,0 +1,13 @@
+@startuml
+participant App         as App
+participant Firewall    as Firewall
+participant PublicAPI   as API
+database    SluiceRedis as Redis
+
+App       ->  Firewall : GET /v2/cases/{token}
+Firewall  ->  API      : GET /v2/cases/{token}
+API       ->  Redis    : Get case by token
+Redis     --> API      : Case data / tasks
+API       --> Firewall : Case JSON response
+Firewall  --> App      : Case JSON response
+@enduml

@@ -1,0 +1,12 @@
+@startuml
+participant Bridge             as Bridge
+participant HealthAuthorityAPI as API
+database    MySQL              as MySQL
+
+Bridge ->  API    : POST /v1/cases/{token}
+API    ->  MySQL  : Get client for token
+MySQL  --> API    : Case UUID / shared secret
+API    ->  API    : Decrypt case data
+API    ->  MySQL  : Store case results
+API    --> Bridge : No Content
+@enduml
