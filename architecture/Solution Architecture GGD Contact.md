@@ -251,7 +251,7 @@ TODO:
 The health authority API is used for delivering data via the bridge to the GGD Contact portal. It is also used for exporting data from the GGD Contact portal to the public API via the private API. The architecture for the health authority API is described in detail [here](healthauthority-api/README.md).
 
 ## Portal
-The portal is the caregiver interface to the GGD Contact system. The user interface is written in VueJS and interfaces with a PHP backend. The architecture for the health authority API is described in detail [here](TODO).
+The portal is the caregiver interface to the GGD Contact system. The user interface is written in VueJS and interfaces with a PHP backend. The architecture for the health authority API is described in detail [here](portal/README.md).
 
 # App Considerations
 
