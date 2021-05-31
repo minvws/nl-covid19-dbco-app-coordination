@@ -259,6 +259,9 @@ Case related data is stored in a MySQL database. Data containing personal inform
 
 ###ER Diagram
 ![ER-Diagram](images/er-diagram-pk-fk.png)
+
+[Detailed ER diagram](images/er-diagram.png)
+
 ### Table description
 | Table             | Description |
 |-------------------|---|
@@ -286,6 +289,7 @@ Case related data is stored in a MySQL database. Data containing personal inform
 | situation_place   |   |
 | task              | A generic table to store data needed for investigation. Currently used to store the contacts an infected person has had. Questions about the contact are stored in encrypted fields.   |
 | user_organisation | Reference table between bcouser and organisation  |
+
 
 # App Considerations
 
