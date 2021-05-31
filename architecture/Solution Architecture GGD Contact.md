@@ -22,7 +22,7 @@ This document is a work in progress and will be adjusted during the project.
   * [Onboarding](#onboarding)
   * [Case Creation](#case-creation)
   * [Collecting data](#collecting-data)
-  * [Submitting data to the backend](#submiting-data-to-the-backend)
+  * [Submitting data to the backend](#submitting-data-to-the-backend)
   * [Making data available to GGD](#making-data-available-to-GGD)
 - [System Landscape](#system-landscape)
 - [Security & Privacy](#security--privacy)
@@ -134,7 +134,7 @@ If the user already installed the app prior to the BCO conversation:
 We call this the reverse pairing flow. The following diagram depicts this process:
 ![Reverse Pairing](images/step_2b_reverse_pairing.png)
 
-After the reverse pairing flow is finished the user is asked if already entered data should be shared with the operator immediately. If the user chooses to do so the operator will receive this data instantly in the portal (see [Submitting data to the backend](#submiting-data-to-the-backend)). 
+After the reverse pairing flow is finished the user is asked if already entered data should be shared with the operator immediately. If the user chooses to do so the operator will receive this data instantly in the portal (see [Submitting data to the backend](#submitting-data-to-the-backend)). 
 
 ## Collecting data
 
