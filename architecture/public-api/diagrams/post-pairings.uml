@@ -1,0 +1,28 @@
+@startuml
+actor       Index              as Index
+participant App                as App
+participant Firewall           as Firewall
+participant PublicAPI          as API
+database    SluiceRedis        as Redis
+queue       SluiceRedisQueue   as RedisQueue
+participant Bridge             as Bridge
+participant HealthAuthorityAPI as HAAPI
+
+Caregiver  -> Index       : Communicate pairing code
+Index      ->  App        : Submit pairing code
+App        ->  Firewall   : POST /v2/pairings
+Firewall   ->  API        : POST /v2/pairings
+API        ->  Redis      : Get pairing request for code
+Redis      --> API        : Pairing request
+API        ->  API        : Verify pairing request
+API        ->  Redis      : Delete pairing request for code
+API        ->  RedisQueue : Queue pairing
+RedisQueue --> Bridge     : Process pairing
+Bridge     ->  HAAPI      : POST /v1/cases/{caseUuid}/clients
+HAAPI      --> Bridge     : Pairing response (health authority public key)
+Bridge     ->  RedisQueue : Queue pairing response
+RedisQueue --> API        : Pairing response
+API        --> Firewall   : Pairing JSON response
+Firewall   --> App        : Pairing JSON response
+App        ->  Index      : Show result
+@enduml
