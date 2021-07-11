@@ -35,6 +35,7 @@ This document is a work in progress and will be adjusted during the project.
   * [Public API](#public-api)
   * [Private API](#private-api)
   * [Workers](#bridge---workers)
+  * [MySQL](#mysql)
 - [App Considerations](#app-considerations)
   * [Native vs hybrid development](#native-vs-hybrid-development)
   * [Lifecycle Management](#lifecycle-management)
@@ -252,6 +253,43 @@ The health authority API is used for delivering data via the bridge to the GGD C
 
 ## Portal
 The portal is the caregiver interface to the GGD Contact system. The user interface is written in VueJS and interfaces with a PHP backend. The architecture for the health authority API is described in detail [here](portal/README.md).
+
+## MySQL
+Case related data is stored in a MySQL database. Data containing personal information is stored encrypted. Central to the ER-diagram is the covidcase table which is a 1 on 1 reference to an investigation of a caregiver on an infected person. This table contains a lot of questions registered by the caregiver. Questions and answers asked by the app are initially stored in the tables 'question' and 'answer'. Questions can be grouped in questionnaires. Most notable tables to support source and contact research are the 'context' and 'task' tables. The 'context' table stores the whereabouts of the infected person. The 'task' table records all contacts to other persons being either source of infection or infected by the index.
+
+###ER Diagram
+![ER-Diagram](images/er-diagram-pk-fk.png)
+
+[Detailed ER diagram](images/er-diagram.png)
+
+### Table description
+| Table             | Description |
+|-------------------|---|
+| answer            | Contains answers to the questions asked to the index by the app |
+| answer_option     | When a question is of type choice of multiplechoice, the answer options can be stored here |
+| bcouser           | Caregiver who has access to the portal message  |
+| client            | Stores OAuth access tokens  |
+| context           | Time and places where an infected person has been. Data is stored in incrypted format. |
+| context_section   | Relation table between context and section  | 
+| covidcase         | Contains case data about an infected person and meta data. Besides meta-data like caregiver assignment and status this table contains a large part of answers to questions which are asked by the caregive. Answers are stored here in encrypted fields.  |   |
+| event             | Events are registered during the lifetime of a covid case to support RIVM metrics  |
+| export            | Reference to exports of events. Exports are stored in to encrypted files and send to RIVM. |
+| failed_jobs       | Reference to periodic scripts which have failures and should be investigated |   |
+| mail_template     | Contains templates used for sending emails  |
+| message           | Stores messages send by email to the infected person |
+| moment            | Datetime reference(start,end)  related to a context  |
+| note              | General remarks a caregiver whishes to store **Still used?**  |
+| organisation      | GGD organisations a caregiver may belongs to  |
+| place             | A reference to a location with address data |
+| question          | A question which is asked by the app to the infected person  |
+| questionnaire     | A set of questions. A version is stored to keep reference to older questionnaires  |   |
+| section           | More delimiting the referenced place   |
+| situation         |   |
+| situation_case    |   |
+| situation_place   |   |
+| task              | A generic table to store data needed for investigation. Currently used to store the contacts an infected person has had. Questions about the contact are stored in encrypted fields.   |
+| user_organisation | Reference table between bcouser and organisation  |
+
 
 # App Considerations
 
