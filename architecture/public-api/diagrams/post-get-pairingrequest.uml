@@ -1,0 +1,40 @@
+@startuml
+actor       Caregiver   as Caregiver
+actor       Index       as Index
+participant App         as App
+participant Firewall    as Firewall
+participant PublicAPI   as API
+database    SluiceRedis as Redis
+
+Caregiver  -> Index       : Ask for reverse pairing code
+Index      ->  App        : Request reverse pairing code
+App        ->  Firewall   : POST /v2/pairingrequests
+Firewall   ->  API        : POST /v2/pairingrequests
+API        ->  Redis      : Store pairing request
+API        --> Firewall   : Pairing request JSON response (code / poll token)
+Firewall   --> App        : Pairing JSON response
+App        ->  Index      : Show reverse pairing code
+
+par
+    Index ->  Caregiver : Communicate reverse pairing code
+
+    loop Get reverse pairing request status
+        App        ->  Firewall   : GET /v2/pairingrequests/{pollToken}
+        Firewall   ->  API        : GET /v2/pairingrequests/{pollToken}
+        API        ->  Redis      : Get pairing request status for poll token
+        Redis      --> API        : Pairing request status (status, plus, when confirmed, normal pairing code)
+        API        --> Firewall   : Pairing request status JSON response
+        Firewall   --> App        : Pairing request status JSON response
+
+        break Reverse pairing request successful
+            group ref [Normal pairing flow]
+                App      ->  Firewall : POST /v2/pairings
+                Firewall ->  API      : ... (see normal pairing flow)
+                API      --> Firewall : ...
+                Firewall --> App      : Pairing JSON response
+                App      --> Index    : Show pairing result
+            end
+        end
+    end
+end
+@enduml

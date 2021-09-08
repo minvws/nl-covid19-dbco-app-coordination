@@ -1,0 +1,10 @@
+@startuml
+participant App       as App
+participant Firewall  as Firewall
+participant PublicAPI as API
+
+App       ->  Firewall : GET /v2/config
+Firewall  ->  API      : GET /v2/config
+API       --> Firewall : Config JSON response
+Firewall  --> App      : Config JSON response
+@enduml

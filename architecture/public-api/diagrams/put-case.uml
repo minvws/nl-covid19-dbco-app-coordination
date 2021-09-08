@@ -1,0 +1,27 @@
+@startuml
+actor       Index              as Index
+participant App                as App
+participant Firewall           as Firewall
+participant PublicAPI          as API
+queue       SluiceRedisQueue   as SluiceRedisQueue
+participant Bridge             as Bridge
+participant HealthAuthorityAPI as HAAPI
+
+Index      ->  App        : Submit case data
+App        ->  Firewall   : PUT /v2/cases/{token}
+Firewall   ->  API        : PUT /v2/cases/{token}
+API        ->  RedisQueue : Queue case submit
+
+par
+    group group [Response]
+        API        --> Firewall   : Accepted
+        Firewall   --> App        : Accepted
+        App        ->  Index      : Case data submitted
+    end
+
+    group group [Bridge]
+        RedisQueue --> Bridge     : Process case submit
+        Bridge     ->  HAAPI      : POST /v1/cases/{token}
+    end
+end
+@enduml

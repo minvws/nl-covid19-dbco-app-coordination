@@ -1,0 +1,30 @@
+@startuml
+actor       Caregiver          as Caregiver
+actor       Index              as Index
+participant PortalUI           as PortalUI
+participant Firewall           as Firewall
+participant PortalAPI          as PortalAPI
+participant PrivateAPI         as API
+database    SluiceRedis        as Redis
+
+Caregiver  ->  PortalUI   : Register case for normal pairing
+PortalUI   ->  Firewall   : POST /api/case/{caseUuid}/pairingcode
+Firewall   ->  PortalAPI  : POST /api/case/{caseUuid}/pairingcode
+PortalAPI  ->  API        : POST /v1/cases
+
+alt If reverse pairing code given
+    API    ->  Redis      : Get reverse pairing request by code
+    Redis  --> API        : Reverse pairing request
+end
+
+API        ->  Redis      : Store pairing by code
+
+alt If reverse pairing code given
+    API    ->  Redis      : Update reverse pairing request status
+end
+
+API        --> PortalAPI  : Pairing code JSON response
+PortalAPI  --> PortalUI   : Pairing code JSON response
+PortalUI   --> Caregiver  : Pairing code
+Caregiver  --> Index      : Pairing code
+@enduml

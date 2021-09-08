@@ -1,0 +1,8 @@
+@startuml
+participant HealthAuthorityAPI as HAAPI
+participant PrivateAPI         as PrivateAPI
+database    SluiceRedis        as Redis
+
+HAAPI      ->  PrivateAPI : POST /v1/cases/{token}
+PrivateAPI ->  Redis      : Store sealed case data / tasks by token
+@enduml

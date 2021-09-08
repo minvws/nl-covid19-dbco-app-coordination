@@ -1,13 +1,12 @@
-# COVID-19 DBCO App - Solution Architecture
-
+#  GGD Contact App - Solution Architecture
 
 **Version:** 0.1 (Work in Progress)
 
 # Introduction
 
-The Dutch Ministry of Health, Welfare and Sport is developing an app to aid the GGD in their contact tracing (Dutch: Bron & Contact Onderzoek, BCO) efforts. The name of the app has yet to be determined, for now we use the working title 'DBCO App' (Digitale ondersteuning Bron & Contact Onderzoek App). This document describes the functional and technical architecture of the DBCO app.
+The Dutch Ministry of Health, Welfare and Sport is developing an app (GGD Contact) to aid the GGD in their contact tracing (Dutch: Bron & Contact Onderzoek, BCO) efforts. This document describes the functional and technical architecture of the DBCO app.
 
-This document is work in progress and will be adjusted during the project.
+This document is a work in progress and will be adjusted during the project.
 
 # Table of contents
 
@@ -23,7 +22,7 @@ This document is work in progress and will be adjusted during the project.
   * [Onboarding](#onboarding)
   * [Case Creation](#case-creation)
   * [Collecting data](#collecting-data)
-  * [Submitting data to the backend](#submiting-data-to-the-backend)
+  * [Submitting data to the backend](#submitting-data-to-the-backend)
   * [Making data available to GGD](#making-data-available-to-GGD)
 - [System Landscape](#system-landscape)
 - [Security & Privacy](#security--privacy)
@@ -35,7 +34,8 @@ This document is work in progress and will be adjusted during the project.
   * [Backend overview](#backend-overview)
   * [Public API](#public-api)
   * [Private API](#private-api)
-  * [Workers](#workers)
+  * [Workers](#bridge---workers)
+  * [MySQL](#mysql)
 - [App Considerations](#app-considerations)
   * [Native vs hybrid development](#native-vs-hybrid-development)
   * [Lifecycle Management](#lifecycle-management)
@@ -84,7 +84,7 @@ The core concept of the app is described with the following steps:
 
 1. When a user is tested positive, he is contacted by the GGD to do contact tracing (who have you met, who should we warn etc.)
 2. In the current situation, this contact information is handed over orally over the phone.
-3. The DBCO project aims to deliver an app that saves time during that phone call and increases the quality of the data.
+3. The GGD Contact project aims to deliver an app that saves time during that phone call and increases the quality of the data.
 4. To this end, during the conversation the BCO staff will still determine which people need to be contacted, but they will leave filling in the contact details to the user.
 5. The user receives, in his app, the list of people he should supply contact info for, will fill out the details, and send back the results.
 
@@ -94,16 +94,11 @@ The following diagram shows a high level concept of the solution.
 
 ![High Level Architecture](images/HLA.png)
 
-
 The core of the solution revolves around a 'digital one way street' (data-sluis) that allows uploads of contact data, in an encrypted form, that can only be decrypted by the system that needs the data. Data can never be downloaded. Edits to the data by the user happen locally on the user's device only.
 
 # Flows
 
 This chapter describes the core flow that we are following, which is derived from the requirement, UX research and various discussions with the health authority.
-
-## Onboarding
-
-Todo
 
 ## Data preparation
 
@@ -111,25 +106,44 @@ A user that installs the app before getting a positive test result can start to 
 
 The following diagram depicts the steps for this flow:
 
-![Preparation](images/step1_preparation.png)
+![Preparation](images/step_1_preparation.png)
 
-It is important that in this flow there is only generic interaction with the backend: to retrieve an app configuration and the list of initial tasks. The answers to the initial tasks stay local on the device and may help speed up the BCO conversation. 
+It is important that in this flow there is only generic interaction with the backend: to retrieve an app configuration and the list of initial questions. The answers to the initial questions stay local on the device and may help speed up the BCO conversation. 
 
 ## Pairing the device case with the BCO case
 
-Once there is a BCO conversation the user is asked if the app is already installed or if not, to install it. The user gets handed a code to be able to link the contents in the app to the user's BCO case. Note: for the CoronaMelder app it was chosen to have the user read a code to the operator. In this case we chose the other way round, because the user might not have the app installed just yet, and may need to write down the code and install and pair the app after the call.
+Once there is a BCO conversation the user is asked if the app is already installed or if not, to install it. There are 2 flows for pairing a device with the BCO case. Which one is used depends on wether the user already installed the app prior to the BCO conversation. 
 
-The following diagram depicts the pairing process:
+If the user hasn't installed the app yet, the following flow is used:
+- The operator will generate a pairing code for the BCO case.
+- This code is read out loud to the user. 
+- The user installs the app after the call.
+- The user pairs the app with the BCO case by entering the code at first start-up.
 
-![Pairing](images/step2_pairing.png)
+The following diagram depicts this pairing process:
+![Pairing](images/step_2a_pairing.png)
+
+
+If the user already installed the app prior to the BCO conversation:
+- The user chooses to share data with the BCO expert.
+- The app retrieves a pairing code from the server.
+- The user reads the pairing code out loud to the BCO expert.
+- The operator enters the pairing code for the BCO case.
+- The app receives a one-time pairing code from the server (similar to the one normally communicated by the BCO expert). 
+- The app finishes the pairing flow by calling the normal pairing functionality with the received code.
+
+We call this the reverse pairing flow. The following diagram depicts this process:
+![Reverse Pairing](images/step_2b_reverse_pairing.png)
+
+After the reverse pairing flow is finished the user is asked if already entered data should be shared with the operator immediately. If the user chooses to do so the operator will receive this data instantly in the portal (see [Submitting data to the backend](#submitting-data-to-the-backend)). 
 
 ## Collecting data
 
-During the BCO conversation, additional tasks will have been defined by the BCO expert. They might have talked about that goalkeeper in the football team that you accidentally hugged after a score, so they might ask you to collect the data for that goalkeeper. These tasks are created using the GGD's BCO portal and the app retrieves them during/after the call.
+During the BCO conversation, additional tasks will have been defined by the BCO expert. They might have talked about that goalkeeper in the football team that you accidentally hugged after a score, so they might ask you to collect the data for that goalkeeper. These tasks are created using the GGD Contact portal and the app retrieves them during/after the call.
 
 The following diagram depicts the process of retrieving these tasks and presenting them to the user.
 
-![Data collection](images/step3_datacollection.png)
+![Data collection](images/step_3_post_call_data_collection.png)
 
 During this step we ask permission to access the contact list on the device. This permission is used to suggest contacts based on the task. E.g. if the task from the BCO conversation is 'please provide contact details for John D', the contact list will suggest 'Did you mean John Doe?'. Only contacts actually selected are sent to the backend. On some platforms, if permission is not desired, we can fall back to the standard OS contact picker dialog. This will allow the user to still select a contact albeit without optimized filtering.
 
@@ -137,17 +151,9 @@ During this step we ask permission to access the contact list on the device. Thi
 
 When the user has completed the tasks by filling out the contact details, the user will upload them to the backend. The following diagram depicts the upload process:
 
-![Data upload](images/step4_dataupload.png)
+![Data upload](images/step_4_upload_data.png)
 
 The user can upload multiple times during the window that the upload is open. This is useful if the user needs more time to collect additional details. Each time the data is uploaded, the previous version will be overwritten.
-
-## Making data available to GGD
-
-Todo
-
-# System Landscape
-
-Todo
 
 # Security & Privacy
 
@@ -184,11 +190,14 @@ We don't want to keep data around longer than necessary. Therefor we have define
 
 ### Backend cleanup
 
-Todo
+* Pairings are automatically wiped if the upload window has expired.
+* Prepared tasks are automatically wiped if the upload window has expired.
+* Invalid submissions are not stored (e.g. after token expiration etc.)
 
 ### Apps cleanup
 
-Todo
+* Paired case is automatically wiped after 14 days.
+* User can reset the app manually.
 
 ## App/Device Verification
 
@@ -225,25 +234,62 @@ The following diagram describes the overall backend architecture.
 
 ## Public API
 
-The public API is the API that is accessible via the public internet, by the DBCO apps. The following diagram describes the architecture of this public API:
-
-![Public API](images/public_api.png)
-
-The definition of the Public API can be found in the [API Swagger Files](api/)
+The public API is the API that is accessible via the public internet, by the GGD Contact apps. The architecture for the public API is described in detail [here](public-api/README.md).
 
 ## Private API
 
-The private API is the interface between the DBCO ecosystem and other systems, via a non-public connection. 
+The private API is the interface between the GGD Contact ecosystem and the public internet, via a non-public connection. It allows pushing data (e.g. case tasks) to the Redis cache that is shared between the public and private API. The architecture for the private API is described in detail [here](private-api/README.md).
 
-![Private API](images/private_api.png)
+## Bridge / workers
 
-The definition of the Private API can be found in the [API Swagger Files](api/)
+The bridge and other workers are at the same level as the private API. They are autonomous, there are no outside API calls / connections to these workers, and they deliver the data via a private network to the destination. The following diagram describes these workers.
 
-## Workers
-
-The workers are the processes that take care of delivering data to the GGD. They are autonomous, there are no outside API calls / connections to these workers, and they deliver the data via a private network to the destination. The following diagram describes these workers.
-
+TODO:
 ![Workers](images/workers.png)
+
+## Health Authority API
+
+The health authority API is used for delivering data via the bridge to the GGD Contact portal. It is also used for exporting data from the GGD Contact portal to the public API via the private API. The architecture for the health authority API is described in detail [here](healthauthority-api/README.md).
+
+## Portal
+The portal is the caregiver interface to the GGD Contact system. The user interface is written in VueJS and interfaces with a PHP backend. The architecture for the health authority API is described in detail [here](portal/README.md).
+
+## MySQL
+Case related data is stored in a MySQL database. Data containing personal information is stored encrypted. Central to the ER-diagram is the covidcase table which is a 1 on 1 reference to an investigation of a caregiver on an infected person. This table contains a lot of questions registered by the caregiver. Questions and answers asked by the app are initially stored in the tables 'question' and 'answer'. Questions can be grouped in questionnaires. Most notable tables to support source and contact research are the 'context' and 'task' tables. The 'context' table stores the whereabouts of the infected person. The 'task' table records all contacts to other persons being either source of infection or infected by the index.
+
+###ER Diagram
+![ER-Diagram](images/er-diagram-pk-fk.png)
+
+[Detailed ER diagram](images/er-diagram.png)
+
+### Table description
+| Table             | Description |
+|-------------------|---|
+| answer            | Contains answers to the questions asked to the index by the app |
+| answer_option     | When a question is of type choice of multiplechoice, the answer options can be stored here |
+| bcouser           | Caregiver who has access to the portal message  |
+| client            | Stores OAuth access tokens  |
+| context           | Time and places where an infected person has been. Data is stored in incrypted format. |
+| context_section   | Relation table between context and section  | 
+| covidcase         | Contains case data about an infected person and meta data. Besides meta-data like caregiver assignment and status this table contains a large part of answers to questions which are asked by the caregive. Answers are stored here in encrypted fields.  |   |
+| event             | Events are registered during the lifetime of a covid case to support RIVM metrics  |
+| export            | Reference to exports of events. Exports are stored in to encrypted files and send to RIVM. |
+| failed_jobs       | Reference to periodic scripts which have failures and should be investigated |   |
+| mail_template     | Contains templates used for sending emails  |
+| message           | Stores messages send by email to the infected person |
+| moment            | Datetime reference(start,end)  related to a context  |
+| note              | General remarks a caregiver whishes to store **Still used?**  |
+| organisation      | GGD organisations a caregiver may belongs to  |
+| place             | A reference to a location with address data |
+| question          | A question which is asked by the app to the infected person  |
+| questionnaire     | A set of questions. A version is stored to keep reference to older questionnaires  |   |
+| section           | More delimiting the referenced place   |
+| situation         |   |
+| situation_case    |   |
+| situation_place   |   |
+| task              | A generic table to store data needed for investigation. Currently used to store the contacts an infected person has had. Questions about the contact are stored in encrypted fields.   |
+| user_organisation | Reference table between bcouser and organisation  |
+
 
 # App Considerations
 
